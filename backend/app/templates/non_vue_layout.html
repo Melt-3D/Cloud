@@ -4,6 +4,7 @@
 {% block navbar %}
   {% if not page_context.app_platform and page_context.syndicate.name != 'jusprin' %}
     {% with view_name=request.resolver_match.view_name %}
+    {% if user.is_authenticated %}
     <nav class="navbar navbar-expand-xl bg-dark static-top" id="dynamic-navbar">
       <div class="container">
         <a class="navbar-brand" href="/">
@@ -21,7 +22,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav">
-            {% if user.is_authenticated %}
+            <!-- {% if user.is_authenticated %}
             <li class="nav-item {% if  'printers' in view_name %}active{% endif %}">
               <a class="nav-link" href="/printers/">{% trans "Printer" %}
               </a>
@@ -34,7 +35,7 @@
               <a class="nav-link" href="/g_code_files/">{% trans "G-Code" %}
               </a>
             </li>
-            {% endif %}
+            {% endif %} -->
             {% block nav_item_pricing %}{% endblock nav_item_pricing %}
             <!-- <li class="nav-item">
               <a class="nav-link" href="https://www.obico.io/help/">{% trans "Help" %}</a>
@@ -70,6 +71,7 @@
         </div>
       </div>
     </nav>
+    {% endif %}
     {% endwith %}
   {% endif %}
 {% endblock navbar %}

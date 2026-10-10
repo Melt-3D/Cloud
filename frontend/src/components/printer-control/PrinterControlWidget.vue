@@ -20,6 +20,14 @@
           <button
             class="menu-button"
             :disabled="printer.isActive()"
+            @click="activeMenu = 'bed-angle'"
+          >
+            <svg class="icon bed-angle"><use href="#svg-print-bed" /></svg>
+            <div class="title">{{ $t("Bed Angle") }}</div>
+          </button>
+          <button
+            class="menu-button"
+            :disabled="printer.isActive()"
             @click="activeMenu = 'extrude'"
           >
             <svg class="icon extruder"><use href="#extruder" /></svg>
@@ -79,10 +87,10 @@
               </div>
             </div>
             <div class="z-move">
-              <div class="up" @click="xyzControl(axis.z, directions.up)">
+              <div class="up" @click="xyzControl(axis.z, directions.down)">
                 <i class="fas fa-arrow-up"></i>
               </div>
-              <div class="down" @click="xyzControl(axis.z, directions.down)">
+              <div class="down" @click="xyzControl(axis.z, directions.up)">
                 <i class="fas fa-arrow-down"></i>
               </div>
               <div class="home" @click="xyzControl(axis.z, directions.home)">
@@ -92,8 +100,45 @@
           </div>
           <div class="additional">
             <div class="control-btn" @click="homeAll"><i class="fas fa-home"></i>{{ $t(" Home All") }}</div>
+            <!-- <div class="control-btn" @click="zTilt"><i class="fas fa-bed"></i>{{ $t(" Z Tilt Adjustment") }}</div> -->
+            <div class="control-btn" @click="zTilt"><svg class="icon bed-angle"><use href="#svg-print-bed" /></svg>{{ $t(" Z Tilt Adjustment") }}</div>
             <div class="control-btn" @click="disableSteppers">
               <i class="fas fa-power-off"></i> {{$t("Disable Steppers")}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Bed Angle -->
+        <div v-show="activeMenu === 'bed-angle'" class="control-panel bed-angle">
+          <div class="main">
+            <div class="toggles">
+              <div
+                v-for="option in zBedAngleAmount.options"
+                :key="'xyz-' + option"
+                class="pill"
+                :class="{ active: option === zBedAngleAmount.value }"
+                @click="zBedAngleAmount.value = option"
+              >
+                {{ option }}
+              </div>
+            </div>
+
+            <div class="xy-move">
+              <div class="left" @click="bedAngleControl('B', directions.down)">
+                <i class="fas fa-arrow-left"></i>
+              </div>
+              <div class="right" @click="bedAngleControl('B', directions.up)">
+                <i class="fas fa-arrow-right"></i>
+              </div>
+              <div class="up" @click="bedAngleControl('A', directions.down)">
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <div class="down" @click="bedAngleControl('A', directions.up)">
+                <i class="fas fa-arrow-down"></i>
+              </div>
+              <!-- <div class="home" @click="bedAngleControl(axis.z, directions.home)">
+                <i class="fas fa-home"></i>
+              </div> -->
             </div>
           </div>
         </div>
@@ -149,6 +194,9 @@
                 / {{ activeToolTargetTemperature }}
               </span>
             </div>
+          </div>
+          <div class="additional">
+            <div class="control-btn" @click="filamentUnload"><i class="fas fa-arrow-up"></i>{{ $t(" Unload Filament") }}</div>
           </div>
         </div>
 
@@ -249,7 +297,8 @@
             </div>
           </template>
 
-          <template v-if="!printer.isAgentMoonraker() || currentFanSpeed !== null">
+          <template >
+            <!-- v-if="!printer.isAgentMoonraker() || currentFanSpeed !== null" -->
             <div class="controls-title">
               <span>{{ $t("Fan Speed") }}</span>
               <help-widget id="fan-speed-widget-help" class="help-message"></help-widget>
@@ -396,6 +445,10 @@ export default {
       xyzJogDistance: {
         value: 10,
         options: [1, 10, 50, 100],
+      },
+      zBedAngleAmount: {
+        value: 10,
+        options: [1, 5, 10, 20],
       },
       extrudeJogDistance: {
         value: 10,
@@ -605,6 +658,10 @@ export default {
     homeAll() {
       this.xyzControl(this.axis.xyz, this.directions.home)
     },
+    zTilt() {
+      let command = `Z_TILT_ADJUST`
+      this.sendCommandToPrinter(command)
+    },
     disableSteppers() {
       const octoPayload = { func: 'commands', target: '_printer', args: ['M18'] }
       const moonrakerPayload = {
@@ -622,6 +679,11 @@ export default {
           })
         }
       })
+    },
+    // Bed Angle
+    bedAngleControl(axis, direction) {
+      let command = `G14 R ${axis}${direction * this.zBedAngleAmount.value}`
+      this.sendCommandToPrinter(command)
     },
 
     // Extrude / Retract
@@ -674,6 +736,10 @@ export default {
         }
       })
     },
+    filamentUnload() {
+      let command = `filament_unload`
+      this.sendCommandToPrinter(command)
+    },
 
     // Baby Step Z
     controlZOffset(direction) {
@@ -716,7 +782,7 @@ export default {
     },
     setFanSpeed(value) {
       if (value === null || value < 0 || value > 100) return
-      let command = value === 0 ? 'M107' : `M106 S${Math.round((value / 100) * 255)}`
+      let command = `SET_FAN_SPEED FAN=extruder_partfan SPEED=${Math.round((value / 100) * 255)}; SET_FAN_SPEED FAN=extruder_partfan2 SPEED=${Math.round((value / 100) * 255)}`
       this.sendCommandToPrinter(command)
     },
     sendCommandToPrinter(command, { onError, onSuccess } = {}) {
@@ -1017,6 +1083,10 @@ export default {
     font-weight: bold
   .temperature-target
     color: var(--color-text-secondary)
+  .additional
+    display: flex
+    justify-content: center
+    gap: 1rem
 
 .tune-printer
   display: flex

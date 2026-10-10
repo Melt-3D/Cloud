@@ -9,7 +9,7 @@
     <template #topBarRight>
       <div v-if="printer" class="action-panel">
         <!-- Tunnel -->
-        <a
+        <!-- <a
           :href="`/tunnels/${printer.id}/`"
           class="btn shadow-none action-btn icon-btn"
           :title="$t('OctoPrint Tunnel')"
@@ -18,7 +18,7 @@
             <use href="#svg-tunnel" />
           </svg>
           <span class="sr-only">{{ $t("OctoPrint Tunnel") }}</span>
-        </a>
+        </a> -->
         <!-- Configure -->
         <a
           :href="`/printers/${printer.id}/`"

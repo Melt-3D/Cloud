@@ -11,7 +11,7 @@
 {% trans 'Password' as password_placeholder %}
 
 <div class="container">
-  <div class="row justify-content-center logreg">
+  <div class="row justify-content-center align-items-center logreg min-vh-100">
     <div class="col-sm-12 col-md-10 col-lg-8 col-xl-6">
       <div id="logreg-forms">
         <div class="d-flex justify-content-center w-100 py-4">
@@ -120,13 +120,13 @@
               </div>
             </div>
           </div>
-          <div>
+          <!-- <div>
             {% if settings.ACCOUNT_ALLOW_SIGN_UP %}
             <div class="text-center pt-4 pb-2 w-100">
               {% trans "Don't have an account?" %} <a class="link" href="{% url 'account_signup' %}?{{request.GET.urlencode}}">{% trans "Sign Up Now" %}</a>
             </div>
             {% endif %}
-          </div>
+          </div> -->
 
           {% if socialaccount_providers %}
           <div class="text-center mt-3">

@@ -299,10 +299,7 @@
                   </a>
                   <div class="text-muted mt-1">
                     <small>
-                      <i18next :translation="$t(`If your printer is always showing as 'offline', and you have gone through {localizedDom}, you can try to re-link printer as the last resort.`)">
-                        <template #localizedDom>
-                          <a :href="getDocUrl('/user-guides/troubleshoot-server-connection-issues/')">{{$t("all the trouble-shooting steps")}}</a>
-                        </template>
+                      <i18next :translation="$t(`If your printer is always showing as 'offline', and you have restarted moonraker-obico, you can try to re-link printer as the last resort.`)">
                       </i18next>
                     </small>
                   </div>

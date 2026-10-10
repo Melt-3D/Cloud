@@ -235,7 +235,7 @@
                                 v-if="print.prediction_json_url"
                                 :normalized-p="normalizedP"
                               />
-                              <div class="feedback-section">
+                              <!-- <div class="feedback-section">
                                 <div
                                   class="lead"
                                   :class="[print.alerted_at ? 'text-danger' : 'text-success']"
@@ -310,7 +310,7 @@
                                     </a>
                                   </small>
                                 </div>
-                              </div>
+                              </div> -->
                             </div>
                           </div>
                           <div v-else>

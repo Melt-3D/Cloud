@@ -97,7 +97,7 @@
         <div v-if="!loading" class="row justify-content-center">
           <div id="new-printer" class="col-sm-12 col-lg-6">
             <div class="new-printer-container">
-              <a href="/printers/wizard/">
+              <a href="/printers/wizard/link/melta/">
                 <svg class="icon">
                   <use href="#svg-add-printer"></use>
                 </svg>

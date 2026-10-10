@@ -151,3 +151,4 @@ zope.interface==7.2
 openai==1.57.2
 instructor==1.5.1
 langfuse==2.57.6
+django-invitations==2.1.0

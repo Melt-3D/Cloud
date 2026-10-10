@@ -8,16 +8,16 @@
               <div class="row">
                 <h3 class="col-sm-12 text-center p-3 wizard-page-title-font">{{ $t("Link Printer") }}</h3>
               </div>
-              <b-row class="center mt-3 mb-5">
+              <!-- <b-row class="center mt-3 mb-5">
                 <div class="col-sm-12 col-lg-8">
                   <PrinterProgress :step="2"></PrinterProgress>
                 </div>
-              </b-row>
+              </b-row> -->
 
               <b-row class="center py-5">
                 <div class="col-sm-12 col-lg-8">
                   <loading :active="chosenDeviceId != null" :can-cancel="false"> </loading>
-                  <div v-if="discoveryEnabled" class="discover">
+                  <!-- <div v-if="discoveryEnabled" class="discover">
                     <div class="discover-body">
                       <div v-if="!canStartLinking" style="text-align: center">
                         <div class="spinner-border big" role="status">
@@ -119,13 +119,14 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else class="container pt-5">
+                  <div v-else class="container pt-5"> -->
+                  <div class="container pt-5">
                     <div class="row justify-content-center pb-1">
                       <div class="col-sm-12 col-md-8 col-lg-6 d-flex flex-column align-items-center">
                         <div class="d-flex align-items-center">
                           <input
                             type="text"
-                            class="form-control code-btn"
+                            class="form-control code-btn border"
                             aria-label="One-time Passcode"
                             v-model="oneTimePasscode"
                             :disabled="oneTimePasscodeStatus === 'inprogress'"
@@ -145,7 +146,7 @@
                         {{$t("Enter the One-time Passcode")}}
                       </div>
                     </div>
-                    <div class="mt-4">
+                    <!-- <div class="mt-4">
                       <muted-alert class="muted-alert wizard-secondary-text-font text-secondary">
                         <i18next class="" :translation="$t(`If you using Obico for OctoPrint older than 2.5.0, or Obico for Klipper older than 1.6.0, switch to {localizedDom}.`)">
                           <template #localizedDom>
@@ -153,23 +154,25 @@
                           </template>
                         </i18next>
                       </muted-alert>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </b-row>
-              <b-row v-if="!discoveryEnabled && !useLegacyVerificationCode" class="mt-3 mb-5">
-                <div class="col-md-4 p-4 method-block">
+              <b-row class="mt-3 mb-5 center">
+                <div class="col-md-8 p-4 method-block">
                     <h4 class="text-center font-weight-bold wizard-page-title-font">{{ $t("Touch Screen") }}</h4>
                     <div class="image-block">
-                      <img src="@static/img/printer-wizard/klipperScreenMenu.png" style="max-width: 80%;" alt="">
+                      <img src="@static/img/printer-wizard/klipperScreenMenu.png" style="max-width: 100%;" alt="">
                     </div>
-                    <ol>
-                      <li>{{ $t("Check to see if your printer already has Obico installed your printer screen.") }}</li>
-                      <li>{{ $t("Navigate to the settings menu on the LCD screen of your printer.") }}</li>
-                      <li>{{ $t("Find the “Link Obico” menu item and tap it to open the connection screen.") }}</li>
+                    <ol class="steps">
+                      <!-- <li>{{ $t("Check to see if your printer already has Obico installed your printer screen.") }}</li> -->
+                      <li>{{ $t("Navigate to the ”More” menu (Gear icon) on the LCD screen of your printer.") }}</li>
+                      <li>{{ $t("Find the “Cloud Link” menu item and tap it to open the connection screen.") }}</li>
+                      <li>{{ $t("Click “Start“ to begin the pairing.") }}</li>
+                      <li>{{ $t("Enter the One-time code into the field.") }}</li>
                     </ol>
                 </div>
-                <div class="col-md-4 p-4 method-block">
+                <!-- <div class="col-md-4 p-4 method-block">
                     <h4 class="text-center font-weight-bold wizard-page-title-font">{{ $t("LCD Screen ") }}</h4>
                     <div class="image-block">
                       <img src="@static/img/printer-wizard/lcdScreenLarge.png" style="max-width: 80%;" alt="">
@@ -191,7 +194,7 @@
                     <div>
                       <a target="_blank" :href="getDocUrl('/user-guides/klipper-setup/')">{{ $t("Show me how") }}</a>
                     </div>
-                </div>
+                </div> -->
               </b-row>
               <div class="d-flex justify-content-between align-items-center button-wrap">
                 <div class="back" @click="$router.back()">
@@ -199,13 +202,13 @@
                   <span> {{ $t("Back") }}</span>
                 </div>
               </div>
-              <div class="text-center mt-5 wizard-default-font">
+              <!-- <div class="text-center mt-5 wizard-default-font">
                 <i18next :translation="$t(`Need help? Check out the {localizedDom}`)">
                   <template #localizedDom>
                     <a target="_blank" :href="targetKlipper? getDocUrl('/user-guides/klipper-setup/'):getDocUrl('/user-guides/octoprint-plugin-setup/')">{{$t("step-by-step set up guide")}}.</a>
                   </template>
                 </i18next>
-              </div>
+              </div> -->
             </div>
           </b-col>
         </b-row>
@@ -228,14 +231,14 @@ import PageLayout from '@src/components/PageLayout.vue'
 import MutedAlert from '@src/components/MutedAlert.vue'
 import DiscoveredPrinter from '@src/components/printers/wizard/DiscoveredPrinter.vue'
 import AutoLinkPopup from '@src/components/printers/wizard/AutoLinkPopup.vue'
-import PrinterProgress from '../../components/printers/wizard/PrinterProgress.vue';
+// import PrinterProgress from '../../components/printers/wizard/PrinterProgress.vue';
 
 export default {
   components: {
     Loading,
     PageLayout,
     DiscoveredPrinter,
-    PrinterProgress,
+    // PrinterProgress,
     MutedAlert,
   },
   data() {
@@ -247,7 +250,7 @@ export default {
       oneTimePasscode: '',
       oneTimePasscodeStatus: null,
       useLegacyVerificationCode: false, // To simplify the flow, this can only change from false -> true.
-      discoveryEnabled: true,
+      discoveryEnabled: false,
       discoveryCount: 0,
       discoveredPrinters: [],
       chosenDeviceId: null,
@@ -288,9 +291,9 @@ export default {
     },
   },
   created() {
-    if (this.targetOctoPrint) {
-      this.useLegacyVerificationCode = true
-    }
+    // if (this.targetOctoPrint) {
+    //   this.useLegacyVerificationCode = true
+    // }
     this.getVerificationCode()
     this.discoverPrinter()
   },

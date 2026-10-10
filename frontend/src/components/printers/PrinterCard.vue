@@ -25,12 +25,12 @@
             <b-dropdown-item href="#" @click.prevent="onSharePrinter()">
               <i class="fas fa-share-alt fa-lg"></i>{{$t("Share")}}
             </b-dropdown-item>
-            <b-dropdown-item :href="octoPrintTunnelUrl()">
+            <!-- <b-dropdown-item :href="octoPrintTunnelUrl()">
               <svg class="menu-icon">
                 <use href="#svg-tunnel" />
               </svg>
               {{ printer.agentDisplayName() }} {{$t("Tunnel")}}
-            </b-dropdown-item>
+            </b-dropdown-item> -->
             <div class="dropdown-divider"></div>
             <b-dropdown-item :href="settingsUrl()">
               <i class="fas fa-wrench fa-lg"></i>{{$t("Configure")}}
@@ -68,10 +68,12 @@
           <H1><i class="far fa-eye-slash"></i></H1>
           <h5 class="text-warning">{{ $t("Failure Detection is Off") }}</h5>
           <small v-if="printer.not_watching_reason"
-            >{{ printer.not_watching_reason }}.
-            <a :href="getDocUrl('/user-guides/detective-not-watching/')" target="_blank"
+            >
+            {{ printer.not_watching_reason }}.
+            <!-- <a :href="getDocUrl('/user-guides/detective-not-watching/')" target="_blank"
               >{{ $t("Learn more. ") }}<small><i class="fas fa-external-link-alt"></i></small></a
-          ></small>
+          > -->
+            </small>
           <div></div>
         </div>
         <failure-detection-gauge :normalized-p="printer.normalized_p" :is-watching="isWatching" />

@@ -1,6 +1,6 @@
 export const syndicateTextConstant = {
   base:{
-    brandName: 'Obico',
+    brandName: 'Melt Cloud',
     docRoot: 'https://www.obico.io/docs',
     appRoot: 'https://app.obico.io',
   },

@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'api',
     'notifications',
     'webpack_loader',
+    'invitations',
 ]
 
 if get_bool('SOCIAL_LOGIN', False):
@@ -266,7 +267,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'unsafe-none'
 
 SITE_USES_HTTPS = get_bool('SITE_USES_HTTPS', False)
 SITE_IS_PUBLIC = get_bool('SITE_IS_PUBLIC', False)
-
+SITE_ID = int(os.environ.get('SITE_ID', 4))
 # DRF settings:
 
 REST_FRAMEWORK = {
@@ -305,7 +306,15 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if SITE_USES_HTTPS else 'http'
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_ALLOW_SIGN_UP = get_bool('ACCOUNT_ALLOW_SIGN_UP', False)
-ACCOUNT_ADAPTER = 'app.accounts.SyndicateSpecificAccountAdapter'
+# ACCOUNT_ADAPTER = 'app.accounts.SyndicateSpecificAccountAdapter'
+ACCOUNT_ADAPTER = 'invitations.models.InvitationsAdapter'
+INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
+
+INVITATIONS_INVITATION_ONLY = True
+INVITATIONS_INVITATION_EXPIRY = 30
+INVITATIONS_ACCEPT_INVITE_AFTER_SIGNUP = True
+INVITATIONS_GONE_ON_ACCEPT_ERROR = False
+
 AUTH_USER_MODEL = 'app.User'
 SOCIALACCOUNT_ADAPTER = 'app.accounts.SocialAccountAdapter'
 SOCIALACCOUNT_PROVIDERS = {}
@@ -511,7 +520,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 SYNDICATES = {
   'base': {
-    'display_name': 'Obico',
+    'display_name': 'Melt Cloud',
     'from_email': DEFAULT_FROM_EMAIL,
     'docRoot': 'https://www.obico.io/docs/',
   },

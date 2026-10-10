@@ -42,6 +42,15 @@ import get from 'lodash/get'
 import { temperatureDisplayName } from '@src/lib/utils'
 import TemperatureItem from '@src/components/printers/TemperatureItem.vue'
 
+const DEFAULT_TEMP_PRESETS = [
+  { name: 'PLA', extruder: 210, bed: 60 },
+  { name: 'PETG', extruder: 240, bed: 80 },
+  { name: 'ABS', extruder: 250, bed: 105 },
+  { name: 'ASA', extruder: 255, bed: 105 },
+  { name: 'TPU', extruder: 225, bed: 50 },
+  { name: 'Preheat', extruder: 150, bed: 60 },
+]
+
 export default {
   name: 'TemperatureWidget',
 
@@ -79,6 +88,11 @@ export default {
     show() {
       return Object.keys(this.temperatures).length > 0
     },
+    tempProfiles() {
+      const printerProfiles = get(this.printer, 'settings.temp_profiles', [])
+      const printerNames = new Set(printerProfiles.map((p) => p.name))
+      return [...printerProfiles, ...DEFAULT_TEMP_PRESETS.filter((p) => !printerNames.has(p.name))]
+    },
   },
 
   methods: {
@@ -88,7 +102,7 @@ export default {
         return
       }
 
-      let tempProfiles = get(this.printer, 'settings.temp_profiles', [])
+      let tempProfiles = this.tempProfiles
       let presets
       let maxTemp = 350
 
@@ -133,7 +147,7 @@ export default {
         })
     },
     onTemperaturePresetsClicked() {
-      let tempProfiles = get(this.printer, 'settings.temp_profiles', [])
+      let tempProfiles = this.tempProfiles
 
       this.$swal
         .openModalWithComponent(
@@ -160,7 +174,7 @@ export default {
         })
     },
     applyTempPreset(preset) {
-      const tempProfiles = get(this.printer, 'settings.temp_profiles', [])
+      let tempProfiles = this.tempProfiles
       let profile = tempProfiles.find((p) => p.name === preset)
 
       const presetObj = {}

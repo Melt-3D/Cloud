@@ -38,9 +38,9 @@
           </label>
         </div>
       </div>
-      <a class="col-sm-9 col-md-10 col-form-label" href="/ent/printers/archived/"
+      <!-- <a class="col-sm-9 col-md-10 col-form-label" href="/ent/printers/archived/"
         >{{ $t("View Archived Printers") }}</a
-      >
+      > -->
     </div>
   </section>
 </template>
@@ -59,24 +59,24 @@ const normalizeLanguage = (lang) => {
   // Check if it's already one of our supported codes (case-insensitive)
   const supportedCodes = {
     'en': 'en',
-    'zh-cn': 'zh-CN',
-    'zh-tw': 'zh-TW',
-    'ca': 'ca',
+    // 'zh-cn': 'zh-CN',
+    // 'zh-tw': 'zh-TW',
+    // 'ca': 'ca',
     'cs': 'cs',
-    'de': 'de',
-    'es': 'es',
-    'fr': 'fr',
-    'hu': 'hu',
-    'it': 'it',
-    'ja': 'ja',
-    'ko': 'ko',
-    'nl': 'nl',
-    'pl': 'pl',
-    'pt-br': 'pt-BR',
-    'ru': 'ru',
-    'sv': 'sv',
-    'tr': 'tr',
-    'uk': 'uk',
+    // 'de': 'de',
+    // 'es': 'es',
+    // 'fr': 'fr',
+    // 'hu': 'hu',
+    // 'it': 'it',
+    // 'ja': 'ja',
+    // 'ko': 'ko',
+    // 'nl': 'nl',
+    // 'pl': 'pl',
+    // 'pt-br': 'pt-BR',
+    // 'ru': 'ru',
+    // 'sv': 'sv',
+    // 'tr': 'tr',
+    // 'uk': 'uk',
   };
 
   if (supportedCodes[normalized]) {
@@ -97,22 +97,22 @@ const normalizeLanguage = (lang) => {
   // Map base language codes to our supported codes
   const langMap = {
     'en': 'en',
-    'ca': 'ca',
+    // 'ca': 'ca',
     'cs': 'cs',
-    'de': 'de',
-    'es': 'es',
-    'fr': 'fr',
-    'hu': 'hu',
-    'it': 'it',
-    'ja': 'ja',
-    'ko': 'ko',
-    'nl': 'nl',
-    'pl': 'pl',
-    'pt': 'pt-BR', // Portuguese defaults to Brazilian Portuguese
-    'ru': 'ru',
-    'sv': 'sv',
-    'tr': 'tr',
-    'uk': 'uk',
+    // 'de': 'de',
+    // 'es': 'es',
+    // 'fr': 'fr',
+    // 'hu': 'hu',
+    // 'it': 'it',
+    // 'ja': 'ja',
+    // 'ko': 'ko',
+    // 'nl': 'nl',
+    // 'pl': 'pl',
+    // 'pt': 'pt-BR', // Portuguese defaults to Brazilian Portuguese
+    // 'ru': 'ru',
+    // 'sv': 'sv',
+    // 'tr': 'tr',
+    // 'uk': 'uk',
   };
 
   return langMap[baseLang] || 'en';
@@ -138,24 +138,24 @@ const getCurrentLanguage = () => {
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', text: 'English' },
-  { value: 'zh-CN', text: '简体中文 (Simplified Chinese)' },
-  { value: 'zh-TW', text: '繁體中文 (Traditional Chinese)' },
-  { value: 'ca', text: 'Català (Catalan)' },
+  // { value: 'zh-CN', text: '简体中文 (Simplified Chinese)' },
+  // { value: 'zh-TW', text: '繁體中文 (Traditional Chinese)' },
+  // { value: 'ca', text: 'Català (Catalan)' },
   { value: 'cs', text: 'Čeština (Czech)' },
-  { value: 'de', text: 'Deutsch (German)' },
-  { value: 'es', text: 'Español (Spanish)' },
-  { value: 'fr', text: 'Français (French)' },
-  { value: 'hu', text: 'Magyar (Hungarian)' },
-  { value: 'it', text: 'Italiano (Italian)' },
-  { value: 'ja', text: '日本語 (Japanese)' },
-  { value: 'ko', text: '한국어 (Korean)' },
-  { value: 'nl', text: 'Nederlands (Dutch)' },
-  { value: 'pl', text: 'Polski (Polish)' },
-  { value: 'pt-BR', text: 'Português (Brasil) (Brazilian Portuguese)' },
-  { value: 'ru', text: 'Русский (Russian)' },
-  { value: 'sv', text: 'Svenska (Swedish)' },
-  { value: 'tr', text: 'Türkçe (Turkish)' },
-  { value: 'uk', text: 'Українська (Ukrainian)' },
+  // { value: 'de', text: 'Deutsch (German)' },
+  // { value: 'es', text: 'Español (Spanish)' },
+  // { value: 'fr', text: 'Français (French)' },
+  // { value: 'hu', text: 'Magyar (Hungarian)' },
+  // { value: 'it', text: 'Italiano (Italian)' },
+  // { value: 'ja', text: '日本語 (Japanese)' },
+  // { value: 'ko', text: '한국어 (Korean)' },
+  // { value: 'nl', text: 'Nederlands (Dutch)' },
+  // { value: 'pl', text: 'Polski (Polish)' },
+  // { value: 'pt-BR', text: 'Português (Brasil) (Brazilian Portuguese)' },
+  // { value: 'ru', text: 'Русский (Russian)' },
+  // { value: 'sv', text: 'Svenska (Swedish)' },
+  // { value: 'tr', text: 'Türkçe (Turkish)' },
+  // { value: 'uk', text: 'Українська (Ukrainian)' },
 ];
 
 export default {

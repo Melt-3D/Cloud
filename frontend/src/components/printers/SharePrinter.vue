@@ -92,9 +92,9 @@
                   </li>
                   <li>
                     {{$t("Anyone with this shareable link will be able to see your printer feed.")}}
-                    <a :href="getDocUrl('/user-guides/printer-feed-sharing/')"
+                    <!-- <a :href="getDocUrl('/user-guides/printer-feed-sharing/')"
                       >{{ $t("Learn more about what they can see.") }}</a
-                    >
+                    > -->
                   </li>
                 </ul>
               </small>

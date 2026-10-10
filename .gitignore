@@ -135,3 +135,5 @@ frontend/webpack-stats.json
 
 .idea/
 .anima/
+
+*.sh

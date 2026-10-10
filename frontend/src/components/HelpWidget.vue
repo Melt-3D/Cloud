@@ -322,20 +322,17 @@
             <!-- filament-used-may-be-incorrect -->
             <template v-if="id === 'filament-used-may-be-incorrect'">
               <h3>{{ $t("Is filament usage inaccurate?") }}</h3>
-              <p>
+              <!-- <p>
                 {{ $t('G-code files uploaded to your {brandName} account before upgrading to {brandName} for OctoPrint version 2.3.0 or {brandName} for Klipper version 1.2.0 do not include filament usage data.',{brandName:$syndicateText.brandName}) }}
-              </p>
+              </p> -->
               <p><strong>{{ $t("To ensure accurate filament usage and other statistics") }}:</strong></p>
               <ul>
                 <li>
-                  {{ $t('Upload G-code files and start prints directly through {brandName} instead of OctoPrint/Klipper.',{brandName:$syndicateText.brandName}) }}
+                  {{ $t('Upload G-code files and start prints directly through Melt Cloud.') }}
 
                 </li>
                 <li>
-                  {{$t("Use a slicer that supports filament usage parameters, such as Cura, Prusa Slicer, SuperSlicer, IdeaMaker, or Simplify3D.")}}
-                </li>
-                <li>
-                  {{$t("Print statistics for G-code files deleted before 12/20/2022 are not included. For files deleted after 12/20/2022, statistics are preserved.")}}
+                  {{$t("Use Melt Slicer that supports filament usage parameters.")}}
                 </li>
               </ul>
             </template>

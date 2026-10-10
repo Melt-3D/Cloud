@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <page-layout>
     <template #content>
       <b-container>
@@ -149,7 +149,7 @@ export default {
 
 <style lang="scss" scoped>
 .octoprint-image {
-  width: 100%; 
+  width: 100%;
   margin-bottom: 1em;
 }
 .form-container {
@@ -245,4 +245,4 @@ export default {
   }
 
 }
-</style>
+</style> -->

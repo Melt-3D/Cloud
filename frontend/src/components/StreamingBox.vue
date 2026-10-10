@@ -58,7 +58,7 @@
     </div>
     <div v-if="isVideoAvailable">
       <!-- show countdown and bitrate while streaming -->
-      <div
+      <!-- <div
         v-if="(!autoplay && isBasicStreamingInProgress) || currentBitrate"
         class="streaming-info overlay-info small"
         :class="{ clickable: isBasicStreamingInProgress }"
@@ -68,7 +68,7 @@
           {{ remainingSecondsCurrentVideoCycle }}
         </div>
         <div v-if="currentBitrate">{{ currentBitrate }}</div>
-      </div>
+      </div> -->
       <!-- show full-width info message -->
       <div
         v-if="!autoplay && (isBasicStreamingReadyToPlay || isBasicStreamingFrozen)"
@@ -118,7 +118,7 @@
       </video>
     </div>
 
-    <div class="extra-controls">
+    <!-- <div class="extra-controls">
       <div
         v-if="showVideo || showVideo || taggedSrc"
         class="video-control-btn"
@@ -126,7 +126,7 @@
       >
         <font-awesome-icon icon="fa-solid fa-rotate-right" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -474,7 +474,7 @@ export default {
         let transforms = ''
         if (flip_horizontal) transforms += ' scaleX(-1)'
         if (flip_vertical) transforms += ' scaleY(-1)'
-        
+
         // Apply rotation for all degrees, not just 180
         if (rotation && rotation !== 0) {
             transforms += ` rotate(${rotation}deg)`

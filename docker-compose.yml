@@ -46,7 +46,7 @@ x-web-defaults: &web-defaults
     VLM_BASE_URL: '${VLM_BASE_URL-https://api.openai.com/v1}'
     VLM_MODEL_NAME: '${VLM_MODEL_NAME-gpt-4o}'
     JUSPRIN_BRAND_NAME: '${JUSPRIN_BRAND_NAME-JusPrin}'
-
+    SITE_ID: '${SITE_ID-4}'
 
 services:
   ml_api:

@@ -28,12 +28,12 @@
             <muted-alert class="muted-alert">
               <span
                 >{{$t("Not watching")}} ({{ printer.not_watching_reason }}).
-                <a
+                <!-- <a
                   :href="getDocUrl('/user-guides/detective-not-watching/')"
                   target="_blank"
                   >{{$t("Learn all possible reasons")}}
                   <small><i class="fas fa-external-link-alt"></i></small></a
-              ></span>
+              > --> </span>
             </muted-alert>
           </div>
         </div>

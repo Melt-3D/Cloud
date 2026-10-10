@@ -66,7 +66,7 @@
                 class="custom-button"
                 @click="openPrinterFiles"
               >
-                &nbsp;
+                <!-- &nbsp;
                 <svg class="logo-small custom-svg-icon">
                   <use href="#svg-klipper-logo" />
                 </svg>
@@ -76,7 +76,8 @@
                 <svg class="logo-small custom-svg-icon">
                   <use href="#svg-mainsail-logo" />
                 </svg>
-                &nbsp;
+                &nbsp; -->
+                {{$t("Printer Files")}}
               </b-button>
               <b-button
                 v-else
@@ -112,12 +113,12 @@
         <template v-else-if="printer.isOffline()">
           <i class="fas fa-exclamation-triangle big-icon warning"></i>
           <p>
-            {{$t("{brandName} Plugin is Offline.",{brandName:$syndicateText.brandName})}}
-            <a
+            {{"The Printer is Offline."}}
+            <!-- <a
               target="_blank"
               :href="getDocUrl('/user-guides/troubleshoot-server-connection-issues/')"
               >{{ $t("Why?") }}</a
-            >
+            > -->
           </p>
         </template>
 

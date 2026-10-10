@@ -23,4 +23,5 @@ urlpatterns = [
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
+    path('invitations/', include('invitations.urls', namespace='invitations')),
 ]

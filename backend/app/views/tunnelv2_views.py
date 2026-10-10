@@ -125,7 +125,7 @@ def redirect_to_tunnel_url(request, pk):
             <html>
                 <body>
                     <center>
-                        <h3 style="color: red;">Failed to create a new tunnel. Check https://obico.io/docs/server-guides/tunnel/ for details.</h3>
+                        <h3 style="color: red;">Tunnels are currently disabled. If you are sure they should be enabled please contact support.</h3>
                     </center>
                 </body>
             </html>
@@ -133,6 +133,7 @@ def redirect_to_tunnel_url(request, pk):
     url = tunnel.get_internal_tunnel_url(request)
     return HttpResponseRedirect(url)
 
+#                         <h3 style="color: red;">Failed to create a new tunnel. Check https://obico.io/docs/server-guides/tunnel/ for details.</h3>
 
 @csrf_exempt
 @xframe_options_exempt

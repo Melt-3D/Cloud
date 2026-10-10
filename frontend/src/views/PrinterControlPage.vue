@@ -19,7 +19,7 @@
           <span class="sr-only">{{ $t("Share") }}</span>
         </a>
         <!-- Tunnel -->
-        <a
+        <!-- <a
           :href="`/tunnels/${printer.id}/`"
           class="btn shadow-none action-btn icon-btn"
           title="OctoPrint Tunnel"
@@ -28,7 +28,7 @@
             <use href="#svg-tunnel" />
           </svg>
           <span class="sr-only">{{ $t("OctoPrint Tunnel") }}</span>
-        </a>
+        </a> -->
         <!-- Configure -->
         <a
           :href="`/printers/${printer.id}/`"
@@ -98,7 +98,7 @@
               <small>{{ $t("Customize this page for each of your printers by reodering or hiding cards above.") }}</small
               >
             </div>
-            <b-button variant="outline-primary" class="custom-button" href="/printers/wizard/">
+            <b-button variant="outline-primary" class="custom-button" href="/printers/wizard/link/melta/">
               <i class="fas fa-plus"></i>
               {{$t("Add Printer")}}
             </b-button>
