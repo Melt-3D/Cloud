@@ -185,7 +185,7 @@ i18n
     interpolation: {
       escapeValue: false,
     },
-    debug: true,
+    debug: false,
     nsSeparator:false
   });
 
