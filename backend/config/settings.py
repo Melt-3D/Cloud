@@ -95,6 +95,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'app.melt_auth.melt_auth',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'app.middleware.TopDomainMatchingCurrentSiteMiddleware',
@@ -287,6 +288,11 @@ if DEBUG:
 
 RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
+
+# Melt3D accounts (app/melt_auth.py). Unset: Obico's own sign-in.
+MELT_AUTH_URL = os.environ.get('MELT_AUTH_URL', '')
+MELT_AUTH_SESSION_COOKIE = os.environ.get('MELT_AUTH_SESSION_COOKIE', '')
+MELT_AUTH_RECHECK_SECONDS = int(os.environ.get('MELT_AUTH_RECHECK_SECONDS') or 15 * 60)
 
 # Allauth
 

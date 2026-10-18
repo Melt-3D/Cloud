@@ -5,15 +5,39 @@ from .views import web_views
 from .views import mobile_views
 
 from .views import tunnelv2_views
+from . import melt_auth
 
 from config import settings
 
+if getattr(settings, 'MELT_AUTH_URL', ''):
+    account_urlpatterns = [
+        path('accounts/login/', melt_auth.login_redirect, name='account_login'),
+        path('accounts/signup/', melt_auth.signup_redirect, name='account_signup'),
+        path('accounts/logout/', melt_auth.logout_redirect, name='account_logout'),
+        path('accounts/email/', melt_auth.account_redirect, name='account_email'),
+        path('accounts/password/change/', melt_auth.password_redirect, name='account_change_password'),
+        path('accounts/password/reset/', melt_auth.password_redirect, name='account_reset_password'),
+        re_path(r'^accounts/password/', melt_auth.password_redirect),
+    ]
+    mobile_auth_urlpatterns = [
+        path('mobile/auth/login/', melt_auth.mobile_login_redirect, name='mobile_auth_login'),
+        path('mobile/auth/signup/', melt_auth.mobile_signup_redirect, name='mobile_auth_signup'),
+    ]
+else:
+    account_urlpatterns = [
+        path('accounts/login/', web_views.SocialAccountAwareLoginView.as_view(), name="account_login"),
+        path('accounts/signup/', web_views.SocialAccountAwareSignupView.as_view(), name="account_signup"),
+        path('accounts/email/', web_views.SyndicateSpecificEmailView.as_view(), name='account_email'),
+        path('accounts/password/reset/', web_views.SyndicateSpecificPasswordResetView.as_view(), name='account_reset_password'),
+    ]
+    mobile_auth_urlpatterns = [
+        path('mobile/auth/login/', mobile_views.MobileLoginView.as_view(), name='mobile_auth_login'),
+        path('mobile/auth/signup/', mobile_views.MobileSignupView.as_view(), name='mobile_auth_signup'),
+    ]
+
 urlpatterns = [
     path('', web_views.index, name='index'),
-    path('accounts/login/', web_views.SocialAccountAwareLoginView.as_view(), name="account_login"),
-    path('accounts/signup/', web_views.SocialAccountAwareSignupView.as_view(), name="account_signup"),
-    path('accounts/email/', web_views.SyndicateSpecificEmailView.as_view(), name='account_email'),
-    path('accounts/password/reset/', web_views.SyndicateSpecificPasswordResetView.as_view(), name='account_reset_password'),
+    *account_urlpatterns,
     path('media/<path:file_path>', web_views.serve_jpg_file),  # semi hacky solution to serve image files
     path('printers/', web_views.printers, name='printers'),
     re_path('printers/wizard/(?P<route>([^/]+/)*)$', web_views.new_printer),
@@ -58,8 +82,7 @@ urlpatterns = [
     path('tunnels/succeeded/', tunnelv2_views.new_octoprinttunnel_succeeded, name='new_octoprinttunnel_succeeded'),
 
     # Shown only in mobile apps
-    path('mobile/auth/login/', mobile_views.MobileLoginView.as_view(), name='mobile_auth_login'),
-    path('mobile/auth/signup/', mobile_views.MobileSignupView.as_view(), name='mobile_auth_signup'),
+    *mobile_auth_urlpatterns,
     path('mobile/auth/apple/', mobile_views.apple_login),
     path('mobile/auth/fetch/', mobile_views.fetch_session),
     path('mobile/auth/oauth_callback/', mobile_views.oauth_callback),
