@@ -56,11 +56,11 @@ export const yumi = {
     },
     {
       name: 'on-primary',
-      values: {[Themes.Light]: '#FFFFFF', [Themes.Dark]: '#001210'},
+      values: {[Themes.Light]: '#FFFFFF', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'secondary',
-      values: {[Themes.Light]: '#28303A', [Themes.Dark]: '#AAACB0'},
+      values: {[Themes.Light]: '#28303A', [Themes.Dark]: '#FAFAFA94'},
     },
     {
       name: 'secondary-hover',
@@ -68,7 +68,7 @@ export const yumi = {
     },
     {
       name: 'on-secondary',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#28303A'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#28303A'},
     },
     {
       name: 'success',
@@ -84,7 +84,7 @@ export const yumi = {
     },
     {
       name: 'danger',
-      values: {[Themes.Light]: '#D9534F', [Themes.Dark]: '#D9534F'},
+      values: {[Themes.Light]: '#F08070', [Themes.Dark]: '#F08070'},
     },
     {
       name: 'danger-hover',
@@ -112,7 +112,7 @@ export const yumi = {
     },
     {
       name: 'background',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#212224'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#212224'},
     },
     {
       name: 'surface-primary',
@@ -124,7 +124,7 @@ export const yumi = {
     },
     {
       name: 'overlay',
-      values: {[Themes.Light]: '#F5F5F5CC', [Themes.Dark]: '#000000CC'},
+      values: {[Themes.Light]: '#F5F5F5CC', [Themes.Dark]: '#000000B8'},
     },
     {
       name: 'hover',
@@ -136,11 +136,11 @@ export const yumi = {
     },
     {
       name: 'divider',
-      values: {[Themes.Light]: '#ABB6C2', [Themes.Dark]: '#6a6566'},
+      values: {[Themes.Light]: '#ABB6C2', [Themes.Dark]: '#FAFAFA47'},
     },
     {
       name: 'divider-muted',
-      values: {[Themes.Light]: '#ABB6C266', [Themes.Dark]: '#6a656666'},
+      values: {[Themes.Light]: '#FAFAFA1F', [Themes.Dark]: '#FAFAFA4766'},
     },
     {
       name: 'text-primary',
@@ -148,7 +148,7 @@ export const yumi = {
     },
     {
       name: 'text-secondary',
-      values: {[Themes.Light]: '#8A94A2', [Themes.Dark]: '#AAACB0'},
+      values: {[Themes.Light]: '#8A94A2', [Themes.Dark]: '#FAFAFA94'},
     },
     {
       name: 'text-help',
@@ -161,7 +161,7 @@ export const yumi = {
     },
     {
       name: 'input-placeholder',
-      values: {[Themes.Light]: '#28303A80', [Themes.Dark]: '#EBEBEB80'},
+      values: {[Themes.Light]: '#28303A80', [Themes.Dark]: '#FAFAFA80'},
     },
 
     {
@@ -198,11 +198,11 @@ export const kingroon = {
     },
     {
       name: 'on-primary',
-      values: {[Themes.Light]: '#FFFFFF', [Themes.Dark]: '#001210'},
+      values: {[Themes.Light]: '#FFFFFF', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'secondary',
-      values: {[Themes.Light]: '#28303A', [Themes.Dark]: '#AAACB0'},
+      values: {[Themes.Light]: '#28303A', [Themes.Dark]: '#FAFAFA94'},
     },
     {
       name: 'secondary-hover',
@@ -210,7 +210,7 @@ export const kingroon = {
     },
     {
       name: 'on-secondary',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#28303A'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#28303A'},
     },
     {
       name: 'success',
@@ -226,7 +226,7 @@ export const kingroon = {
     },
     {
       name: 'danger',
-      values: {[Themes.Light]: '#D9534F', [Themes.Dark]: '#D9534F'},
+      values: {[Themes.Light]: '#F08070', [Themes.Dark]: '#F08070'},
     },
     {
       name: 'danger-hover',
@@ -254,7 +254,7 @@ export const kingroon = {
     },
     {
       name: 'background',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#212224'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#212224'},
     },
     {
       name: 'surface-primary',
@@ -266,7 +266,7 @@ export const kingroon = {
     },
     {
       name: 'overlay',
-      values: {[Themes.Light]: '#F5F5F5CC', [Themes.Dark]: '#000000CC'},
+      values: {[Themes.Light]: '#F5F5F5CC', [Themes.Dark]: '#000000B8'},
     },
     {
       name: 'hover',
@@ -278,11 +278,11 @@ export const kingroon = {
     },
     {
       name: 'divider',
-      values: {[Themes.Light]: '#ABB6C2', [Themes.Dark]: '#6a6566'},
+      values: {[Themes.Light]: '#ABB6C2', [Themes.Dark]: '#FAFAFA47'},
     },
     {
       name: 'divider-muted',
-      values: {[Themes.Light]: '#ABB6C266', [Themes.Dark]: '#6a656666'},
+      values: {[Themes.Light]: '#FAFAFA1F', [Themes.Dark]: '#FAFAFA4766'},
     },
     {
       name: 'text-primary',
@@ -290,7 +290,7 @@ export const kingroon = {
     },
     {
       name: 'text-secondary',
-      values: {[Themes.Light]: '#8A94A2', [Themes.Dark]: '#AAACB0'},
+      values: {[Themes.Light]: '#8A94A2', [Themes.Dark]: '#FAFAFA94'},
     },
     {
       name: 'text-help',
@@ -303,7 +303,7 @@ export const kingroon = {
     },
     {
       name: 'input-placeholder',
-      values: {[Themes.Light]: '#28303A80', [Themes.Dark]: '#EBEBEB80'},
+      values: {[Themes.Light]: '#28303A80', [Themes.Dark]: '#FAFAFA80'},
     },
 
     {
@@ -352,7 +352,7 @@ export const mintion = {
     },
     {
       name: 'on-secondary',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#EBEBEB'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'success',
@@ -368,7 +368,7 @@ export const mintion = {
     },
     {
       name: 'danger',
-      values: {[Themes.Light]: '#D9534F', [Themes.Dark]: '#D9534F'},
+      values: {[Themes.Light]: '#F08070', [Themes.Dark]: '#F08070'},
     },
     {
       name: 'danger-hover',
@@ -396,7 +396,7 @@ export const mintion = {
     },
     {
       name: 'background',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#EBEBEB'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'surface-primary',
@@ -424,7 +424,7 @@ export const mintion = {
     },
     {
       name: 'divider-muted',
-      values: {[Themes.Light]: '#ABB6C266', [Themes.Dark]: '#ABB6C266'},
+      values: {[Themes.Light]: '#FAFAFA1F', [Themes.Dark]: '#FAFAFA1F'},
     },
     {
       name: 'text-primary',
@@ -475,7 +475,7 @@ export const biqu = {
     },
     {
       name: 'primary-hover',
-      values: {[Themes.Light]: '#70EFDE', [Themes.Dark]: '#70EFDE'},
+      values: {[Themes.Light]: '#1F5E5E', [Themes.Dark]: '#1F5E5E'},
     },
     {
       name: 'primary-muted',
@@ -483,11 +483,11 @@ export const biqu = {
     },
     {
       name: 'on-primary',
-      values: {[Themes.Light]: '#001210', [Themes.Dark]: '#001210'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'secondary',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#EBEBEB'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'secondary-hover',
@@ -511,7 +511,7 @@ export const biqu = {
     },
     {
       name: 'danger',
-      values: {[Themes.Light]: '#D9534F', [Themes.Dark]: '#D9534F'},
+      values: {[Themes.Light]: '#F08070', [Themes.Dark]: '#F08070'},
     },
     {
       name: 'danger-hover',
@@ -563,19 +563,19 @@ export const biqu = {
     },
     {
       name: 'divider',
-      values: {[Themes.Light]: '#6a6566', [Themes.Dark]: '#6a6566'},
+      values: {[Themes.Light]: '#FAFAFA47', [Themes.Dark]: '#FAFAFA47'},
     },
     {
       name: 'divider-muted',
-      values: {[Themes.Light]: '#ABB6C266', [Themes.Dark]: '#ABB6C266'},
+      values: {[Themes.Light]: '#FAFAFA1F', [Themes.Dark]: '#FAFAFA1F'},
     },
     {
       name: 'text-primary',
-      values: {[Themes.Light]: '#EBEBEB', [Themes.Dark]: '#EBEBEB'},
+      values: {[Themes.Light]: '#FAFAFA', [Themes.Dark]: '#FAFAFA'},
     },
     {
       name: 'text-secondary',
-      values: {[Themes.Light]: '#AAACB0', [Themes.Dark]: '#AAACB0'},
+      values: {[Themes.Light]: '#FAFAFA94', [Themes.Dark]: '#FAFAFA94'},
     },
     {
       name: 'text-help',
