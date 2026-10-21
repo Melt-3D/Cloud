@@ -4,9 +4,6 @@
       <div class="printer-name truncated">
         {{ printer ? printer.name : '' }}
       </div>
-    </template>
-
-    <template #topBarRight>
       <div v-if="printer" class="action-panel">
         <!-- Share Feed -->
         <a
@@ -69,6 +66,9 @@
           />
         </b-dropdown>
       </div>
+    </template>
+
+    <template #topBarRight>
     </template>
     <template #content>
       <loading-placeholder v-if="!printer" />
