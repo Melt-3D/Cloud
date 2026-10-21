@@ -198,6 +198,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    maxHeight: {
+      type: Number,
+      default: null,
+    },
     autoplay: {
       type: Boolean,
       required: true,
@@ -272,7 +276,9 @@ export default {
       return this.printer.isAgentVersionGte('2.1.0', '0.3.0')
     },
     webcamStyle() {
-      const maxHeight = window.innerHeight / (this.halfHeight ? 2 : 1) - 75
+      const maxHeight = this.maxHeight
+        ? this.maxHeight / (this.halfHeight ? 2 : 1)
+        : window.innerHeight / (this.halfHeight ? 2 : 1) - 75
       const output = {
           transform: this.generateTransform(
               this.webcam?.flipH ?? false,
@@ -287,7 +293,7 @@ export default {
       if (this.webcam?.streamRatio) {
           const [width, height] = this.webcam.streamRatio.split(':').map(Number)
           output.aspectRatio = width / height
-          output.maxWidth = (window.innerHeight - 155) * output.aspectRatio + 'px'
+          output.maxWidth = (this.maxHeight || window.innerHeight - 155) * output.aspectRatio + 'px'
       }
 
       if (this.webcam?.streamRatio && [90, 270].includes(this.videoRotationDeg)) {

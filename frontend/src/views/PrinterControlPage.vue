@@ -72,13 +72,15 @@
     </template>
     <template #content>
       <loading-placeholder v-if="!printer" />
-      <div v-else class="page-container" fluid>
+      <template v-else>
+      <div class="page-container" fluid>
         <div class="widgets-container">
           <template v-for="widget in widgets">
             <component
               :is="widget.component"
-              v-if="isWidgetVisible(widget)"
+              v-if="isWidgetVisible(widget) && !widget.belowFold"
               :key="widget.id"
+              :class="'cell-' + widget.component"
               :printer="printer"
               :printer-comm="printerComm"
               :print="lastPrint"
@@ -127,6 +129,7 @@
               </div>
             </div>
           </div>
+        <div ref="streamBody" class="stream-body">
         <b-card-text v-if="webcams.length || printer?.pic?.img_url" class="px-0 py-0 content d-inline-block" style="width: 100%;">
             <b-row>
                 <b-col class="pb-0" style="position: relative">
@@ -138,6 +141,7 @@
                             :printer="printer"
                             :autoplay="true"
                             :stickyStreamingSrc="'IMAGE'"
+                            :max-height="streamMaxHeight"
                           />
                         </div>
                       </b-col>
@@ -149,6 +153,7 @@
                             :autoplay="user.is_pro"
                             :webcam="webcam"
                             :halfHeight="webcams.length > 1 && !selectedWebcam"
+                            :max-height="streamMaxHeight"
                             @onRotateRightClicked="(deg) => handleRotateRightClicked(deg, webcam.stream_id)"
                           />
                         </div>
@@ -159,7 +164,22 @@
             </b-row>
         </b-card-text>
         </div>
+        </div>
       </div>
+      <div v-if="belowFoldWidgets.length" ref="belowFold" class="below-fold">
+        <component
+          :is="widget.component"
+          v-for="widget in belowFoldWidgets"
+          :key="widget.id"
+          :printer="printer"
+          :printer-comm="printerComm"
+          :print="lastPrint"
+          @sendPrinterAction="onSendPrinterAction"
+          @notAFailureClicked="onNotAFailureClicked"
+          @updateSettings="onUpdateSettings"
+        ></component>
+      </div>
+      </template>
     </template>
   </page-layout>
 </template>
@@ -228,6 +248,8 @@ const WIDGETS = [
     id: 6,
     title: 'Terminal Widget',
     component: 'TerminalWidget',
+    enabledByDefault: false,
+    belowFold: true,
   },
 ]
 
@@ -260,6 +282,7 @@ export default {
       customRotationDeg: 0,
       preferredWebcam: null,
       customRotationData: [],
+      streamMaxHeight: null,
     }
   },
 
@@ -270,6 +293,9 @@ export default {
         const configItem = WIDGETS.find((w) => w.id === widget.id)
         return { ...widget, ...configItem }
       })
+    },
+    belowFoldWidgets() {
+      return (this.widgets || []).filter((widget) => widget.belowFold && this.isWidgetVisible(widget))
     },
     videoRotationDeg() {
       const rotation = +(this.printer?.settings?.webcam_rotation ?? 0) + this.customRotationDeg
@@ -350,9 +376,28 @@ export default {
 
   mounted() {
     document.querySelector('body').style.paddingBottom = 0
+    this.streamResizeObserver = new ResizeObserver(() => this.updateStreamMaxHeight())
+  },
+
+  updated() {
+    // streamBody only exists once the printer is loaded
+    if (this.$refs.streamBody && this.$refs.streamBody !== this.observedStreamBody) {
+      this.observedStreamBody = this.$refs.streamBody
+      this.streamResizeObserver.observe(this.observedStreamBody)
+    }
+  },
+
+  beforeDestroy() {
+    this.streamResizeObserver.disconnect()
   },
 
   methods: {
+    updateStreamMaxHeight() {
+      // In the single-page desktop layout the webcam fills the space left above the controls.
+      // On narrow screens the page scrolls, so StreamingBox falls back to its window-based sizing.
+      const singlePage = window.matchMedia('(min-width: 1025px)').matches
+      this.streamMaxHeight = singlePage && this.observedStreamBody ? this.observedStreamBody.clientHeight : null
+    },
     isWidgetVisible(widget) {
       if (!widget.enabled) return false
 
@@ -414,7 +459,7 @@ export default {
       )
     },
     restoreWidgets() {
-      let widgets = WIDGETS.map((w) => ({ id: w.id, enabled: true }))
+      let widgets = WIDGETS.map((w) => ({ id: w.id, enabled: w.enabledByDefault ?? true }))
 
       if (isLocalStorageSupported()) {
         widgets =
@@ -424,7 +469,7 @@ export default {
       // add any new widgets
       for (const WIDGET of WIDGETS) {
         if (!widgets.find((w) => w.id === WIDGET.id)) {
-          widgets.push({ id: WIDGET.id, enabled: true })
+          widgets.push({ id: WIDGET.id, enabled: WIDGET.enabledByDefault ?? true })
         }
       }
 
@@ -542,8 +587,14 @@ export default {
         .then((result) => {
           if (result.value?.config) {
             const config = JSON.parse(result.value.config)
+            const shownBelowFold = this.belowFoldWidgets.map((w) => w.id)
 
             this.widgetsConfig = config
+
+            // Bring a just-enabled widget below the fold (e.g. the terminal) into view
+            if (this.belowFoldWidgets.some((w) => !shownBelowFold.includes(w.id))) {
+              this.$nextTick(() => this.$refs.belowFold?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+            }
 
             if (isLocalStorageSupported()) {
               localStorage.setItem(
@@ -579,29 +630,56 @@ export default {
   height: 1.25rem
   width: 1.25rem
 
+// Webcam on top filling the space left over, controls in a row of cards below it,
+// so the whole page fits the viewport on desktop.
 .page-container
-  --widget-width: 480px
   display: flex
-  flex: 1
+  flex-direction: column
+  gap: var(--gap-between-blocks)
   padding: 0 15px
-  @media (max-width: 768px)
-    flex: unset
+  height: calc(100vh - 50px - var(--gap-between-blocks) * 2)
+  min-height: 0
 
 .widgets-container
+  display: flex
+  flex-wrap: wrap
+  align-items: stretch
+  gap: var(--gap-between-blocks)
   flex-shrink: 0
-  width: var(--widget-width)
+
+  // Cards grow to share the row, and wrap once they hit their minimum usable width
+  > .widget
+    flex: 1 1 0
+    margin-bottom: 0
+    min-width: 240px
+    ::v-deep .widget-content
+      padding: 0.75rem 1rem
+  > .cell-DisplayStatusWidget
+    flex-basis: 100%
+  > .cell-PrintProgressWidget, > .cell-FailureDetectionWidget
+    min-width: 260px
+  > .cell-TemperatureWidget
+    min-width: 300px
+  > .cell-PrinterControlWidget
+    flex-grow: 1.5
+    min-width: 360px
+    ::v-deep .wrapper
+      min-height: 0
+      padding-bottom: 0
+
 .stream-container
+  order: -1
   flex: 1
-  position: fixed
-  right: var(--gap-between-blocks)
-  top: calc(50px + var(--gap-between-blocks))
-  width: calc(100vw - 100px - var(--gap-between-blocks)*3 - var(--widget-width))
+  min-height: 240px
+  display: flex
+  flex-direction: column
   border-radius: var(--border-radius-md)
   overflow: hidden
   background-color: #000
 
   .header-container
     display: flex
+    flex-shrink: 0
     justify-content: space-between
     background-color: var(--color-surface-secondary)
     .title
@@ -609,45 +687,51 @@ export default {
       padding: 6px 12px
       font-size: 14px
 
+  .stream-body
+    flex: 1
+    min-height: 0
+    overflow: hidden
+
+// Narrow screens: same order, but full-width cards and the page scrolls
 @media (max-width: 1024px)
   .page-container
-    box-sizing: content-box
+    height: auto
+    max-width: 640px
     width: 100%
-    max-width: var(--widget-width)
     margin: 0 auto
-    flex-direction: column
+    box-sizing: border-box
 
   .widgets-container
-    order: 2
-    width: 100%
+    flex-direction: column
+    > .widget
+      flex: none
+      min-width: 0
+      ::v-deep .widget-content
+        padding: 1rem 1rem 0.5rem
 
   .stream-container
-    order: 1
-    position: relative
-    top: 0
-    left: 0
-    width: 100%
-    margin-bottom: 15px
-    flex: 0
+    flex: none
+    min-height: 0
 
-.page-container
-  @media (max-width: 510px)
-    box-sizing: border-box
-    padding: 0 15px
-
-    .widgets-container
-      width: 100%
+.below-fold
+  padding: 0 15px
+  margin-top: var(--gap-between-blocks)
+  // Keep scrollIntoView from hiding it under the fixed top bar
+  scroll-margin-top: calc(50px + var(--gap-between-blocks))
+  @media (max-width: 1024px)
+    max-width: 640px
+    margin-left: auto
+    margin-right: auto
 
 .extra-actions
   display: flex
+  flex-direction: column
   justify-content: center
-  margin-top: var(--gap-between-blocks)
-  gap: 1rem
+  gap: 0.5rem
   .extra-actions-explanation, .section-title
     display: none
   @media (max-width: 510px)
-    margin-top: 2rem
-    flex-direction: column
+    margin-top: 1rem
     .extra-actions-explanation
       display: block
       text-align: center

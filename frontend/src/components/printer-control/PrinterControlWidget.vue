@@ -905,7 +905,7 @@ export default {
     gap: .5rem
 
 .menu-button
-  width: calc((100% - 3rem) / 3)
+  width: calc((100% - 1rem) / 2)
   flex-shrink: 0
   padding: 1.5rem 1rem
   background-color: var(--color-background)
@@ -919,7 +919,7 @@ export default {
   gap: .5rem
   cursor: pointer
   @media (max-width: 510px)
-    width: calc((100% - 2rem) / 3)
+    width: calc((100% - .5rem) / 2)
     padding: 1rem 0.5rem
   &:hover
     opacity: .8

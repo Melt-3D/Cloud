@@ -24,7 +24,7 @@ x-web-defaults: &web-defaults
     SOCIAL_LOGIN: '${SOCIAL_LOGIN-False}'
     REDIS_URL: '${REDIS_URL-redis://redis:6379}'
     DATABASE_URL: '${DATABASE_URL-sqlite:////app/db.sqlite3}'
-    INTERNAL_MEDIA_HOST: '${INTERNAL_MEDIA_HOST-http://web:3334}'
+    INTERNAL_MEDIA_HOST: '${INTERNAL_MEDIA_HOST-http://web:3335}'
     ML_API_HOST: '${ML_API_HOST-http://ml_api:3333}'
     ACCOUNT_ALLOW_SIGN_UP: '${ACCOUNT_ALLOW_SIGN_UP-False}'
     WEBPACK_LOADER_ENABLED: '${WEBPACK_LOADER_ENABLED-False}'
@@ -74,12 +74,12 @@ services:
     <<: *web-defaults
     hostname: web
     ports:
-      - "3334:3334"
+      - "3335:3335"
     depends_on:
       - ml_api
-    command: sh -c 'python manage.py migrate && python manage.py collectstatic -v 2 --noinput && daphne -b 0.0.0.0 -p 3334 config.routing:application'
+    command: sh -c 'python manage.py migrate && python manage.py collectstatic -v 2 --noinput && daphne -b 0.0.0.0 -p 3335 config.routing:application'
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider --no-check-certificate http://web:3334/hc/"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider --no-check-certificate http://web:3335/hc/"]
       start_period: 30s
       interval: 90s
       timeout: 20s
