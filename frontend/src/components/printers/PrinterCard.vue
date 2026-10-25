@@ -15,7 +15,7 @@
           <b-button
             variant="outline-secondary"
             :href="`/printers/${printer.id}/control/`"
-            class="px-4 mr-2"
+            class="px-4 mr-2 no-corner"
             >{{$t("Open")}}&nbsp;{{$t("Details")}}
           </b-button>
           <b-dropdown right no-caret toggle-class="icon-btn">

@@ -990,6 +990,7 @@ div[id^="b-modal-"] {
   justify-content: center;
   gap: 0.5rem;
   border-width: 1px;
+  border-radius: var(--border-radius-md);
   flex-shrink: 0;
 }
 

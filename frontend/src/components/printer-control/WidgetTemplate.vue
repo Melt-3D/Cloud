@@ -32,6 +32,7 @@ export default {
     margin-bottom: 0
   .widget-title
     padding: 6px 12px
+    text-align: center
     font-size: 14px
     color: var(--color-text-secondary)
   .widget-content

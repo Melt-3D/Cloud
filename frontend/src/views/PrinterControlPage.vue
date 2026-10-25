@@ -677,15 +677,23 @@ export default {
   overflow: hidden
   background-color: #000
 
+  // Title centered, webcam selector kept on the right
   .header-container
-    display: flex
+    display: grid
+    grid-template-columns: 1fr auto 1fr
+    align-items: center
     flex-shrink: 0
-    justify-content: space-between
     background-color: var(--color-surface-secondary)
     .title
+      grid-column: 2
+      grid-row: 1
       color: var(--color-text-secondary)
       padding: 6px 12px
       font-size: 14px
+    > :last-child
+      grid-column: 3
+      grid-row: 1
+      justify-self: end
 
   .stream-body
     flex: 1

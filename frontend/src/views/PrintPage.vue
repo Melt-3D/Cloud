@@ -10,7 +10,7 @@
               <div class="card-container print-details">
                 <div v-if="currentIndex || currentIndex === 0" class="navigation-container">
                   <b-button
-                    variant="outline-secondary"
+                    variant="outline-secondary no-corner"
                     :disabled="!prevPrint"
                     @click.prevent="switchToPrint(prevPrint)"
                   >
@@ -22,7 +22,7 @@
                     </div>
                   </div>
                   <b-button
-                    variant="outline-secondary"
+                    variant="outline-secondary no-corner"
                     :disabled="!nextPrint"
                     @click.prevent="switchToPrint(nextPrint)"
                   >
