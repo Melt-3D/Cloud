@@ -160,7 +160,7 @@
                 </div>
               </div>
               <div class="btn-wrapper">
-                <a class="btn btn-secondary no-corner" :href="`/stats/`">
+                <a class="btn btn-secondary" :href="`/stats/`">
                   {{$t("Full Stats")}}
                   <i class="fas fa-arrow-right"></i>
                 </a>

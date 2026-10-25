@@ -115,7 +115,7 @@
             <div class="d-flex align-items-center">
               <b-dropdown v-if="webcams.length > 1" class="webcam-dropdown" block size="sm" variant="link" toggle-class="text-decoration-none" no-caret>
                 <template #button-content>
-                  <i class="fa fa-camera" aria-hidden="true"></i>
+                  <!-- <i class="fa fa-camera" aria-hidden="true"></i> -->
                   {{ !!selectedWebcam ? (selectedWebcam.name || 'Primary') : 'All' }}
                   <i class="fa fa-chevron-down" aria-hidden="true"></i>
                 </template>

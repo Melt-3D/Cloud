@@ -95,12 +95,8 @@ body {
 
 button, .btn {
   border-width: 1px;
-  border-radius: 300px;
+  border-radius: var(--border-radius-md);
 
-  &.no-corner {
-    border-radius: 0;
-    border-width: 1px;
-  }
   &.no-shadow {
     outline: none;
     box-shadow: none;
@@ -387,7 +383,7 @@ a.link {
       display: flex;
     }
     button {
-      border-radius: 300px !important;
+      border-radius: var(--border-radius-md) !important;
       border: none !important;
 
       &.swal2-confirm {
@@ -990,7 +986,6 @@ div[id^="b-modal-"] {
   justify-content: center;
   gap: 0.5rem;
   border-width: 1px;
-  border-radius: var(--border-radius-md);
   flex-shrink: 0;
 }
 
