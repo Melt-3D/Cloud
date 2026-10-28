@@ -1,35 +1,51 @@
 @import 'theme';
 @import 'mixin';
 
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/Inter-var.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/Inter-ext.woff2') format('woff2');
+  unicode-range: U+0100-017F, U+2197;
+}
+
 // Default css variables to reduce flicker while JS is initializing
 :root {
   --color-primary: #287474;
-  --color-primary-hover: #70EFDE;
+  --color-primary-hover: #1F5E5E;
   --color-primary-muted: #018786;
-  --color-on-primary: #001210;
-  --color-secondary: #EBEBEB;
+  --color-on-primary: #FAFAFA;
+  --color-secondary: #FAFAFA;
   --color-secondary-hover: #D0D0D0;
   --color-on-secondary: #28303A;
   --color-success: #5CB85C;
   --color-success-hover: #4CAE4C;
   --color-on-success: #ffffff;
-  --color-danger: #D9534F;
+  --color-danger: #F08070;
   --color-danger-hover: #C2413D;
   --color-on-danger: #ffffff;
   --color-warning: #F0AD4E;
   --color-warning-hover: #DB9A3F;
   --color-on-warning: #ffffff;
   --color-on-warning-2: #000000;
-  --color-background: #231F20;
-  --color-surface-primary: #423D3E;
-  --color-surface-secondary: #373334;
-  --color-overlay: #000000CC;
+  --color-background: #0D0D0D;
+  --color-surface-primary: #141414;
+  --color-surface-secondary: #444041;
+  --color-overlay: #000000B8;
   --color-hover: #FFFFFF13;
   --color-hover-accent: #C9E0FA26;
-  --color-divider: #6a6566;
-  --color-divider-muted: #6a656666;
-  --color-text-primary: #EBEBEB;
-  --color-text-secondary: #AAACB0;
+  --color-divider: #FAFAFA47;
+  --color-divider-muted: #FAFAFA4766;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #FAFAFA94;
   --color-text-help: #4C9BE8;
   --color-input-background: #3d383a;
   --color-input-placeholder: #EBEBEB80;
@@ -38,10 +54,10 @@
   --color-icon-tunneling-2: #CDCDCD;
   --url-loader: url(/static/img/loader/loader_dark-scheme.svg);
   --shadow-top-nav: 0px 2px 10px rgb(0 0 0 / 0.3);
-  --border-radius-lg: 16px;
-  --border-radius-md: 10px;
-  --border-radius-sm: 6px;
-  --border-radius-xs: 4px;
+  --border-radius-lg: 0px;
+  --border-radius-md: 0px;
+  --border-radius-sm: 0px;
+  --border-radius-xs: 0px;
 }
 
 [data-tenant="kingroon"] {
@@ -57,7 +73,7 @@
 
 :root {
   --gap-between-blocks: 30px;
-  --default-font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --default-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
   @media (max-width: 768px) {
     --gap-between-blocks: 15px;
@@ -79,12 +95,8 @@ body {
 
 button, .btn {
   border-width: 1px;
-  border-radius: 300px;
+  border-radius: var(--border-radius-md);
 
-  &.no-corner {
-    border-radius: 0;
-    border-width: 1px;
-  }
   &.no-shadow {
     outline: none;
     box-shadow: none;
@@ -371,7 +383,7 @@ a.link {
       display: flex;
     }
     button {
-      border-radius: 300px !important;
+      border-radius: var(--border-radius-md) !important;
       border: none !important;
 
       &.swal2-confirm {

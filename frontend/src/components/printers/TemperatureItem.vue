@@ -73,6 +73,7 @@ export default {
   &.editable
     cursor: pointer
 .icon
+  flex-shrink: 0
   width: 36px
   height: 36px
   display: flex
@@ -86,10 +87,16 @@ export default {
     height: 20px
     color: var(--color-on-primary)
 
+.title
+  white-space: nowrap
+
+// Keep "°C" on the same line as its number
 .value-wrapper
   margin-left: auto
   display: flex
   gap: .375rem
+  flex-shrink: 0
+  white-space: nowrap
 .value
   font-weight: bold
 .target

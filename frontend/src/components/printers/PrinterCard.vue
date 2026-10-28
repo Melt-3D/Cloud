@@ -89,7 +89,7 @@
       <div class="info-section settings">
         <button
           type="button"
-          class="info-section-toggle btn btn-sm no-corner mx-2"
+          class="info-section-toggle btn btn-sm mx-2"
           :class="{ pressed: section_toggles.settings }"
           @click="onSettingsToggleClicked()"
         >
@@ -97,7 +97,7 @@
         </button>
         <button
           type="button"
-          class="info-section-toggle btn btn-sm no-corner mx-2"
+          class="info-section-toggle btn btn-sm mx-2"
           :class="{ pressed: section_toggles.time }"
           @click="onTimeToggleClicked()"
         >
@@ -105,7 +105,7 @@
         </button>
         <button
           type="button"
-          class="info-section-toggle btn btn-sm no-corner mx-2"
+          class="info-section-toggle btn btn-sm mx-2"
           :class="{ pressed: section_toggles.statusTemp }"
           @click="onStatusTempToggleClicked()"
         >

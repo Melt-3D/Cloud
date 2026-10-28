@@ -131,7 +131,7 @@ export default {
     .printer-item{
       .img-wrap{
         padding:20px;
-        background:#423D3E;
+        background:#141414;
         border-radius:6px;
         img{
           width:100px;
@@ -175,7 +175,7 @@ export default {
   .text-wrap{
     h5{
       margin-top:10px;
-      color:#AAACB0;
+      color:#FAFAFA94;
       font-size:16px;
     }
   }
