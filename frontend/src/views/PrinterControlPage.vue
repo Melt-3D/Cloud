@@ -129,40 +129,32 @@
               </div>
             </div>
           </div>
-        <div ref="streamBody" class="stream-body">
-        <b-card-text v-if="webcams.length || printer?.pic?.img_url" class="px-0 py-0 content d-inline-block" style="width: 100%;">
-            <b-row>
-                <b-col class="pb-0" style="position: relative">
-                  <b-container fluid class="p-0">
-                    <b-row no-gutters style="flex-direction: column; align-items: center;">
-                      <b-col v-if="webcams.length === 0 && printer?.pic?.img_url" :key="printer?.pic?.img_url" :cols="12">
-                        <div class="d-flex justify-content-center webcamBackground">
-                          <streaming-box
-                            :printer="printer"
-                            :autoplay="true"
-                            :stickyStreamingSrc="'IMAGE'"
-                            :max-height="streamMaxHeight"
-                          />
-                        </div>
-                      </b-col>
-                      <b-col v-for="(webcam, index) in webcams" :key="index" v-show="isWebcamSelected(webcam)">
-                        <div class="d-flex justify-content-center webcamBackground">
-                          <streaming-box
-                            :printer="printer"
-                            :webrtc="printerComm.webrtcConnections.get(webcam.name)"
-                            :autoplay="user.is_pro"
-                            :webcam="webcam"
-                            :halfHeight="webcams.length > 1 && !selectedWebcam"
-                            :max-height="streamMaxHeight"
-                            @onRotateRightClicked="(deg) => handleRotateRightClicked(deg, webcam.stream_id)"
-                          />
-                        </div>
-                      </b-col>
-                    </b-row>
-                  </b-container>
-              </b-col>
-            </b-row>
-        </b-card-text>
+        <div class="stream-body">
+          <!-- Each stream fills its cell and is letterboxed inside it; with "All" webcams the cells split the height -->
+          <div v-if="webcams.length === 0 && printer?.pic?.img_url" :key="printer?.pic?.img_url" class="stream-cell">
+            <streaming-box
+              :printer="printer"
+              :autoplay="true"
+              :stickyStreamingSrc="'IMAGE'"
+              fill
+            />
+          </div>
+          <div
+            v-for="(webcam, index) in webcams"
+            v-show="isWebcamSelected(webcam)"
+            :key="index"
+            class="stream-cell"
+            :style="{ '--stream-ratio': (webcam.streamRatio || '16:9').replace(':', ' / ') }"
+          >
+            <streaming-box
+              :printer="printer"
+              :webrtc="printerComm.webrtcConnections.get(webcam.name)"
+              :autoplay="user.is_pro"
+              :webcam="webcam"
+              fill
+              @onRotateRightClicked="(deg) => handleRotateRightClicked(deg, webcam.stream_id)"
+            />
+          </div>
         </div>
         </div>
       </div>
@@ -282,7 +274,6 @@ export default {
       customRotationDeg: 0,
       preferredWebcam: null,
       customRotationData: [],
-      streamMaxHeight: null,
     }
   },
 
@@ -376,28 +367,9 @@ export default {
 
   mounted() {
     document.querySelector('body').style.paddingBottom = 0
-    this.streamResizeObserver = new ResizeObserver(() => this.updateStreamMaxHeight())
-  },
-
-  updated() {
-    // streamBody only exists once the printer is loaded
-    if (this.$refs.streamBody && this.$refs.streamBody !== this.observedStreamBody) {
-      this.observedStreamBody = this.$refs.streamBody
-      this.streamResizeObserver.observe(this.observedStreamBody)
-    }
-  },
-
-  beforeDestroy() {
-    this.streamResizeObserver.disconnect()
   },
 
   methods: {
-    updateStreamMaxHeight() {
-      // In the single-page desktop layout the webcam fills the space left above the controls.
-      // On narrow screens the page scrolls, so StreamingBox falls back to its window-based sizing.
-      const singlePage = window.matchMedia('(min-width: 1025px)').matches
-      this.streamMaxHeight = singlePage && this.observedStreamBody ? this.observedStreamBody.clientHeight : null
-    },
     isWidgetVisible(widget) {
       if (!widget.enabled) return false
 
@@ -610,9 +582,6 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-.webcamBackground
-    position: relative
-
 // Navbar
 .printer-name
   font-size: 1rem
@@ -658,8 +627,9 @@ export default {
     flex-basis: 100%
   > .cell-PrintProgressWidget, > .cell-FailureDetectionWidget
     min-width: 260px
+  // Never narrower than one temperature row needs, so the values can't wrap
   > .cell-TemperatureWidget
-    min-width: 300px
+    min-width: min-content
   > .cell-PrinterControlWidget
     flex-grow: 1.5
     min-width: 360px
@@ -699,6 +669,12 @@ export default {
     flex: 1
     min-height: 0
     overflow: hidden
+    display: flex
+    flex-direction: column
+
+  .stream-cell
+    flex: 1
+    min-height: 0
 
 // Narrow screens: same order, but full-width cards and the page scrolls
 @media (max-width: 1024px)
@@ -720,6 +696,11 @@ export default {
   .stream-container
     flex: none
     min-height: 0
+
+  // The page scrolls here, so give each stream the camera's own proportions instead of filling the viewport
+  .stream-cell
+    flex: none
+    aspect-ratio: var(--stream-ratio, 16 / 9)
 
 .below-fold
   padding: 0 15px

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{ 'fill-box': fill }">
     <div
       v-show="slowLinkLoss > 50"
       ref="slowLinkWrapper"
@@ -90,13 +90,13 @@
         :style="webcamStyle"
         :src="require('@static/img/print-padded.png')"
       />
-      <img
+      <!-- <img
         v-if="taggedSrc"
         class="webcamImage stackedImage"
         :style="webcamStyle"
         :src="taggedSrc"
         :alt="printer.name + ' current image'"
-      />
+      /> -->
       <img
         :src="mjpgSrc"
         v-show="showMJpeg"
@@ -198,9 +198,10 @@ export default {
       type: Boolean,
       default: false,
     },
-    maxHeight: {
-      type: Number,
-      default: null,
+    // Fill the parent's box exactly and letterbox the stream inside it, instead of sizing from the window height
+    fill: {
+      type: Boolean,
+      default: false,
     },
     autoplay: {
       type: Boolean,
@@ -276,9 +277,7 @@ export default {
       return this.printer.isAgentVersionGte('2.1.0', '0.3.0')
     },
     webcamStyle() {
-      const maxHeight = this.maxHeight
-        ? this.maxHeight / (this.halfHeight ? 2 : 1)
-        : window.innerHeight / (this.halfHeight ? 2 : 1) - 75
+      const maxHeight = window.innerHeight / (this.halfHeight ? 2 : 1) - 75
       const output = {
           transform: this.generateTransform(
               this.webcam?.flipH ?? false,
@@ -293,13 +292,19 @@ export default {
       if (this.webcam?.streamRatio) {
           const [width, height] = this.webcam.streamRatio.split(':').map(Number)
           output.aspectRatio = width / height
-          output.maxWidth = (this.maxHeight || window.innerHeight - 155) * output.aspectRatio + 'px'
+          output.maxWidth = (window.innerHeight - 155) * output.aspectRatio + 'px'
       }
 
       if (this.webcam?.streamRatio && [90, 270].includes(this.videoRotationDeg)) {
           if (output.transform === 'none') output.transform = ''
           const scale = 1 / output.aspectRatio
           output.transform += ' rotate(' + this.videoRotationDeg + 'deg) scale(' + scale + ')'
+      }
+
+      if (this.fill) {
+        delete output.aspectRatio
+        delete output.maxHeight
+        delete output.maxWidth
       }
 
       return output
@@ -511,6 +516,18 @@ export default {
   position: absolute
   top: 0
   left: 0
+
+.fill-box
+  position: relative
+  width: 100%
+  height: 100%
+  .image-container
+    position: absolute
+    inset: 0
+  .webcamImage
+    position: absolute
+    top: 0
+    left: 0
 
 .centered-element
   position: absolute

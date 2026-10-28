@@ -33,14 +33,14 @@
             <svg class="icon extruder"><use href="#extruder" /></svg>
             <div class="title">{{ $t("Extrude") }}</div>
           </button>
-          <button
+          <!-- <button
             v-if="printer.isAgentMoonraker()"
             class="menu-button"
             @click="activeMenu = 'baby-step-z'"
           >
             <svg class="icon move-z"><use href="#svg-move-z" /></svg>
             <div class="title">{{ $t("Baby Step Z") }}</div>
-          </button>
+          </button> -->
           <button v-if="!hideTunePrinter" class="menu-button" @click="activeMenu = 'tune-printer'">
             <font-awesome-icon :icon="['fas', 'gear']" />
             <div class="title">{{ $t("Tune Printer") }}</div>
@@ -200,7 +200,7 @@
           </div>
         </div>
 
-        <!-- Baby Step Z -->
+        <!-- Baby Step Z
         <div v-show="activeMenu === 'baby-step-z'" class="control-panel baby-step-z">
           <div class="main">
             <div class="toggles">
@@ -236,7 +236,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
         <!-- Tune Printer -->
         <div v-show="activeMenu === 'tune-printer'" class="control-panel tune-printer">
           <template v-if="!printer.isAgentMoonraker() || currentFeedRate !== null">
