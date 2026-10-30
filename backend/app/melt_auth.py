@@ -1,12 +1,14 @@
 # Sign-in through the Melt3D account server (auth.melt3d.eu, on Auth0).
 #
-# The auth server's session cookie is set for all of melt3d.eu. The middleware
-# forwards it to /api/access and logs the matching Obico user in with a normal
-# Django session, re-checked every MELT_AUTH_RECHECK_SECONDS. While the auth
+# The auth server's session cookie is set for all of melt3d.eu, so any
+# *.melt3d.eu site can set it too. The login page forwards it to /api/access and
+# shows whose account it is ("Continue as …?"); only that page's CSRF-protected
+# POST logs the Obico user in, with a normal Django session. The middleware
+# re-checks sessions every MELT_AUTH_RECHECK_SECONDS and signs out when the
+# account changed or lost access, but never signs anyone in. While the auth
 # server is unreachable, a session lasts MELT_AUTH_GRACE_SECONDS past its last
-# successful check. Obico's origin
-# must be in the auth server's TRUSTED_ORIGINS. app/urls.py routes the views
-# only when MELT_AUTH_URL is set.
+# successful check. Obico's origin must be in the auth server's
+# TRUSTED_ORIGINS. app/urls.py routes the views only when MELT_AUTH_URL is set.
 
 import hashlib
 import logging
@@ -56,6 +58,7 @@ SESSION_EMAIL = 'melt_auth_email'
 SIGNED_OUT = 'signed_out'
 WAITLIST = 'waitlist'
 INACTIVE = 'inactive'
+PENDING = 'pending'  # inactive and never signed in: waiting for an admin's approval
 UNAVAILABLE = 'unavailable'
 
 
@@ -146,12 +149,14 @@ def user_for(melt_user, syndicate):
         User.objects.filter(email__iexact=email, syndicate=syndicate).first()
     )
     if not user:
+        # New accounts wait for an admin to activate them in the Django admin
         user = User.objects.create_user(
             email=email,
             password=None,
             syndicate=syndicate,
             username=f'{email}_{syndicate.id}',
             first_name=(melt_user.get('name') or '')[:150],
+            is_active=False,
         )
 
     address, _ = EmailAddress.objects.get_or_create(
@@ -173,34 +178,44 @@ def _should_skip(request):
     )
 
 
-def _try_login(request):
+def _signed_in_melt_user(request):
+    """
+    The Melt3D account this browser is signed in with and its Obico user, as
+    (access, user), or None with request.melt_auth_state saying why not.
+    Signs nobody in: that takes a click on the "Continue as" page.
+    """
     cookie_value = melt_cookie(request)
     if not cookie_value:
-        return
+        return None
     denied = cache.get(_denied_cache_key(cookie_value))
     if denied:
         request.melt_auth_state = denied
-        return
+        return None
 
     try:
         access = melt_access(request)
     except MeltAuthUnavailable as e:
         LOGGER.warning('Melt3D auth: auth server unavailable: %s', e)
         request.melt_auth_state = UNAVAILABLE
-        return
+        return None
 
     if not has_access(access):
         denied = WAITLIST if access and access.get('signedIn') is True else SIGNED_OUT
         cache.set(_denied_cache_key(cookie_value), denied, DENIED_CACHE_SECONDS)
         request.melt_auth_state = denied
-        return
+        return None
 
     user = user_for(access['user'], syndicate_from_request(request))
+    request.melt_auth_email = access['user']['email'].strip().lower()
     if not user.is_active:
-        cache.set(_denied_cache_key(cookie_value), INACTIVE, DENIED_CACHE_SECONDS)
-        request.melt_auth_state = INACTIVE
-        return
+        state = PENDING if user.last_login is None else INACTIVE
+        cache.set(_denied_cache_key(cookie_value), state, DENIED_CACHE_SECONDS)
+        request.melt_auth_state = state
+        return None
+    return access, user
 
+
+def _login(request, access, user):
     auth_login(request, user, backend='app.accounts.SyndicateSpecificBackend')
     request.session[SESSION_EMAIL] = access['user']['email'].strip().lower()
     request.session[SESSION_CHECKED_AT] = int(time.time())
@@ -231,18 +246,18 @@ def _recheck(request):
         request.session[SESSION_CHECKED_AT] = int(time.time())
         return
 
+    # Signed out of Melt3D, off the access list, or the cookie is now someone else's.
+    # Never switch accounts silently: the next page asks "Continue as …?" again.
     auth_logout(request)
-    _try_login(request)
 
 
 def melt_auth(get_response):
 
     def middleware(request):
-        if not _should_skip(request):
-            if request.user.is_authenticated:
-                _recheck(request)
-            else:
-                _try_login(request)
+        # Signing in takes a click on the login page ("Continue as …?"). A Melt3D
+        # cookie alone, which any *.melt3d.eu site can set, signs nobody in.
+        if not _should_skip(request) and request.user.is_authenticated:
+            _recheck(request)
 
         return get_response(request)
 
@@ -270,25 +285,42 @@ def _not_signed_in(request, default_next):
     state = getattr(request, 'melt_auth_state', None)
     if state == WAITLIST:
         return redirect(_portal('/no-access', redirect_url=_absolute_next(request, default_next)))
-    if state == INACTIVE:
-        return render(request, 'account/account_inactive.html', status=403)
+    if state in (PENDING, INACTIVE):
+        return render(request, 'account/account_inactive.html', {
+            'pending': state == PENDING,
+            'melt_email': getattr(request, 'melt_auth_email', None),
+            'switch_account_url': _portal('/logout'),
+        }, status=403)
     if state == UNAVAILABLE:
         return HttpResponse('Melt3D accounts are unavailable for a moment. Try again shortly.', status=503)
     return None
 
 
-def login_redirect(request, default_next='/'):
+def _continue_as(request, default_next, portal_path):
     if request.user.is_authenticated:
         return redirect(_absolute_next(request, default_next))
-    return _not_signed_in(request, default_next) or \
-        redirect(_portal('/login', redirect_url=_absolute_next(request, default_next)))
+    found = _signed_in_melt_user(request)
+    if not found:
+        return _not_signed_in(request, default_next) or \
+            redirect(_portal(portal_path, redirect_url=_absolute_next(request, default_next)))
+
+    access, user = found
+    # The POST carries Django's CSRF token and Origin check, so another site can't click it
+    if request.method == 'POST':
+        _login(request, access, user)
+        return redirect(_absolute_next(request, default_next))
+    return render(request, 'account/melt_continue_as.html', {
+        'melt_user': access['user'],
+        'switch_account_url': _portal('/logout'),
+    })
+
+
+def login_redirect(request, default_next='/'):
+    return _continue_as(request, default_next, '/login')
 
 
 def signup_redirect(request, default_next='/'):
-    if request.user.is_authenticated:
-        return redirect(_absolute_next(request, default_next))
-    return _not_signed_in(request, default_next) or \
-        redirect(_portal('/signup', redirect_url=_absolute_next(request, default_next)))
+    return _continue_as(request, default_next, '/signup')
 
 
 def mobile_login_redirect(request):
@@ -300,7 +332,7 @@ def mobile_signup_redirect(request):
 
 
 def logout_redirect(request):
-    # Must end the Melt3D session too, or the middleware signs straight back in.
+    # End the Melt3D session too, so the next sign-in starts fresh.
     auth_logout(request)
     return redirect(_portal('/logout'))
 

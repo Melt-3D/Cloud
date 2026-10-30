@@ -51,6 +51,8 @@ class UserAdmin(DjangoUserAdmin):
     )
     
     ordering = ('email',)
+    # New Melt3D accounts start inactive (app/melt_auth.py): approve them by ticking "Active"
+    list_display = ('email', 'first_name', 'is_active', 'date_joined', 'last_login')
     actions = [send_test_email]
     
     def get_readonly_fields(self, request, obj=None):
