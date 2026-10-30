@@ -2,12 +2,15 @@
 #
 # The auth server's session cookie is set for all of melt3d.eu. The middleware
 # forwards it to /api/access and logs the matching Obico user in with a normal
-# Django session, re-checked every MELT_AUTH_RECHECK_SECONDS. Obico's origin
+# Django session, re-checked every MELT_AUTH_RECHECK_SECONDS. While the auth
+# server is unreachable, a session lasts MELT_AUTH_GRACE_SECONDS past its last
+# successful check. Obico's origin
 # must be in the auth server's TRUSTED_ORIGINS. app/urls.py routes the views
 # only when MELT_AUTH_URL is set.
 
 import hashlib
 import logging
+import re
 import time
 from urllib.parse import urlencode
 
@@ -41,6 +44,10 @@ SKIP_PATH_PREFIXES = (
 
 DENIED_CACHE_SECONDS = 60
 
+# A cookie value as RFC 6265 allows it (printable ASCII except space, ", comma, ; and \).
+# Anything else isn't a Melt3D session and is never forwarded to the auth server.
+COOKIE_VALUE_RE = re.compile(r'[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]{1,4096}')
+
 SESSION_CHECKED_AT = 'melt_auth_checked_at'
 SESSION_EMAIL = 'melt_auth_email'
 
@@ -68,6 +75,18 @@ def recheck_seconds():
     return getattr(settings, 'MELT_AUTH_RECHECK_SECONDS', 15 * 60)
 
 
+def grace_seconds():
+    return getattr(settings, 'MELT_AUTH_GRACE_SECONDS', 60 * 60)
+
+
+def melt_cookie(request):
+    """The browser's Melt3D session cookie, or None when it is missing or malformed."""
+    value = request.COOKIES.get(session_cookie_name())
+    if value and COOKIE_VALUE_RE.fullmatch(value):
+        return value
+    return None
+
+
 def _denied_cache_key(cookie_value):
     return 'melt_auth:denied:' + hashlib.sha256(cookie_value.encode()).hexdigest()
 
@@ -79,7 +98,7 @@ def melt_access(request):
     """
     base = auth_url()
     cookie_name = session_cookie_name()
-    cookie_value = request.COOKIES.get(cookie_name)
+    cookie_value = melt_cookie(request)
     if not base or not cookie_value:
         return None
 
@@ -155,7 +174,7 @@ def _should_skip(request):
 
 
 def _try_login(request):
-    cookie_value = request.COOKIES.get(session_cookie_name())
+    cookie_value = melt_cookie(request)
     if not cookie_value:
         return
     denied = cache.get(_denied_cache_key(cookie_value))
@@ -188,7 +207,8 @@ def _try_login(request):
 
 
 def _recheck(request):
-    # Only sessions created here. An unreachable auth server signs nobody out.
+    # Only sessions created here. An unreachable auth server signs nobody out
+    # until the grace period after the last successful check runs out.
     checked_at = request.session.get(SESSION_CHECKED_AT)
     if checked_at is None or time.time() - checked_at < recheck_seconds():
         return
@@ -196,7 +216,12 @@ def _recheck(request):
     try:
         access = melt_access(request)
     except MeltAuthUnavailable as e:
-        LOGGER.warning('Melt3D auth: auth server unavailable, keeping session: %s', e)
+        if time.time() - checked_at < grace_seconds():
+            LOGGER.warning('Melt3D auth: auth server unavailable, keeping session: %s', e)
+            return
+        LOGGER.warning('Melt3D auth: auth server unavailable past the grace period, signing out: %s', e)
+        auth_logout(request)
+        request.melt_auth_state = UNAVAILABLE
         return
 
     if (

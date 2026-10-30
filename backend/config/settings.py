@@ -9,6 +9,7 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from django.contrib.messages import constants as messages
+from django.core.exceptions import ImproperlyConfigured
 
 
 def get_bool(key, default):
@@ -27,7 +28,12 @@ SYNDICATE = os.environ.get('SYNDICATE') or 'base'
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag'
+# No fallback: a default key is public, and anyone knowing it can forge signed media URLs,
+# signed cookies and password reset links. Generate one with
+#   python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    raise ImproperlyConfigured('DJANGO_SECRET_KEY is not set. Set it in .env before starting the server.')
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 60  # User login session is 2 months
 SESSION_COOKIE_REFRESH_INTERVAL = 60 * 60 * 24  # Refresh session cookies once every 24 hours
@@ -37,7 +43,9 @@ SESSION_COOKIE_NAME = 'tsd_sessionid'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_bool('DEBUG', False)
 
-ALLOWED_HOSTS = ['*']
+# Comma-separated host names this server answers to. Keep "web": the other containers and the
+# health check call it as http://web:<port>. Unset: any host, for local setups.
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()] or ['*']
 
 ## So that django will honor this header. Why is this not the default!
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -77,11 +85,12 @@ INSTALLED_APPS = [
     'invitations',
 ]
 
-if get_bool('SOCIAL_LOGIN', False):
-    INSTALLED_APPS += [
-        'allauth.socialaccount.providers.apple',
-        'site_specific_allauth_google_provider',
-    ]
+# Social login (Google / Apple) is disabled: sign-in goes through Melt3D accounts only (app/melt_auth.py).
+# if get_bool('SOCIAL_LOGIN', False):
+#     INSTALLED_APPS += [
+#         'allauth.socialaccount.providers.apple',
+#         'site_specific_allauth_google_provider',
+#     ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -103,7 +112,7 @@ MIDDLEWARE = [
     'app.middleware.check_admin_ip_whitelist',
     'allauth.account.middleware.AccountMiddleware',
     'hijack.middleware.HijackUserMiddleware',
-    'app.middleware.check_x_api',
+    # 'app.middleware.check_x_api',  # Logs X-Api-Key OAuth2 tokens in as sessions; OAuth2 server is disabled (config/urls.py)
     'app.middleware.syndicate_header',
 ]
 
@@ -267,14 +276,26 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'unsafe-none'
 
 SITE_USES_HTTPS = get_bool('SITE_USES_HTTPS', False)
+
+# Both ways in (Cloudflare and tailscale serve) are HTTPS. Browsers never send these cookies over
+# plain http, and HSTS keeps them from trying it. Django only sends HSTS on HTTPS requests.
+if SITE_USES_HTTPS:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Start short: browsers remember HSTS, so a mistake with a long value is hard to undo
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS') or 60 * 60)
 SITE_IS_PUBLIC = get_bool('SITE_IS_PUBLIC', False)
 SITE_ID = int(os.environ.get('SITE_ID', 4))
 # DRF settings:
 
 REST_FRAMEWORK = {
+    # Proxies in front of the server (1 for Cloudflare Tunnel). Throttles take the client IP from
+    # X-Forwarded-For at this depth, so clients can't pick their own by sending the header.
+    'NUM_PROXIES': int(os.environ.get('NUM_PROXIES') or 1),
     'DEFAULT_THROTTLE_RATES': {
         'anon': '3600/hour',
         'user': '3600/hour',
+        'printer_link': '20/hour',
     },
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -293,6 +314,7 @@ RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
 MELT_AUTH_URL = os.environ.get('MELT_AUTH_URL', '')
 MELT_AUTH_SESSION_COOKIE = os.environ.get('MELT_AUTH_SESSION_COOKIE', '')
 MELT_AUTH_RECHECK_SECONDS = int(os.environ.get('MELT_AUTH_RECHECK_SECONDS') or 15 * 60)
+MELT_AUTH_GRACE_SECONDS = int(os.environ.get('MELT_AUTH_GRACE_SECONDS') or 60 * 60)
 
 # Allauth
 
@@ -513,7 +535,16 @@ NOTIFICATION_PLUGIN_DIRS = [
     os.path.join(BASE_DIR, 'notifications/plugins'),
 ]
 
+# Plugins that are never loaded, so they can't send notifications or be set up. Only email is
+# offered (frontend/src/notifications/plugins.js), so the rest are off to keep the attack surface small.
+# Slack in particular: its OAuth callback has no `state` check, so a link could connect someone else's Slack.
+NOTIFICATION_PLUGINS_DISABLED = [
+    'apprise', 'discord', 'pushbullet', 'pushover', 'slack', 'telegram', 'twilio', 'webhook',
+]
+
 ADMIN_IP_WHITELIST = json.loads(os.environ.get('ADMIN_IP_WHITELIST') or '[]')
+# Comma-separated host names /admin/ is served on, e.g. the tailscale serve name. Unset: any host.
+ADMIN_HOSTS = [h.strip() for h in os.environ.get('ADMIN_HOSTS', '').split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = json.loads(os.environ.get('CSRF_TRUSTED_ORIGINS') or '[]')
 

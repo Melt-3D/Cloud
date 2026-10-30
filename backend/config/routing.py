@@ -6,14 +6,16 @@ from django.core.asgi import get_asgi_application
 django_asgi_app = get_asgi_application()
 
 import api.ws_routing
-from api.authentication import TokenAuthMiddlewareStack
+from api.authentication import TokenAuthMiddlewareStack, SessionWebsocketOriginValidator
 
 application = ProtocolTypeRouter({
     # Need to explicity add http as of 3.0
     'http': django_asgi_app,
-    'websocket': TokenAuthMiddlewareStack(
-        URLRouter(
-            api.ws_routing.websocket_urlpatterns
+    'websocket': SessionWebsocketOriginValidator(
+        TokenAuthMiddlewareStack(
+            URLRouter(
+                api.ws_routing.websocket_urlpatterns
+            )
         )
     ),
 })

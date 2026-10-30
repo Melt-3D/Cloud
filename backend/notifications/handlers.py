@@ -46,7 +46,8 @@ def _load_plugins(root: str, loaded: Dict[str, PluginDesc]) -> None:
         if (
             os.path.isdir(os.path.join(root, name)) and
             os.path.exists(os.path.join(os.path.join(root, name), '__init__.py')) and
-            name[0] not in ('.', '_')
+            name[0] not in ('.', '_') and
+            name not in settings.NOTIFICATION_PLUGINS_DISABLED
         )
     ]
 

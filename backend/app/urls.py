@@ -49,7 +49,7 @@ urlpatterns = [
     re_path('^user_preferences/(?P<route>([^/]+/)*)$', web_views.user_preferences),
     path('unsubscribe_email/', web_views.unsubscribe_email),
 
-    # TODO: Delete both after making sure it's no longer used from mobile app
+    # Linked from the Cancel / Resume buttons in failure alert emails. GET only shows a confirmation page.
     path('prints/<int:pk>/cancel/', web_views.cancel_print),
     path('prints/<int:pk>/resume/', web_views.resume_print),
     path('prints/', RedirectView.as_view(url='/print_history/', permanent=True)),
@@ -64,10 +64,10 @@ urlpatterns = [
     re_path('^g_code_files/', web_views.g_code_files),
     path('hc/', web_views.health_check,),
     path('publictimelapses/', RedirectView.as_view(url='/ent_pub/publictimelapses/', permanent=True), name='publictimelapse_list'),
-    path('slack_oauth_callback/', web_views.slack_oauth_callback, name='slack_oauth_callback'),
+    # path('slack_oauth_callback/', web_views.slack_oauth_callback, name='slack_oauth_callback'),  # Slack is disabled (NOTIFICATION_PLUGINS_DISABLED)
     path('printer_events/', web_views.printer_events),
     path('first_layer_inspection_images/', web_views.first_layer_inspection_images),
-    path('orca_slicer/authorized/', web_views.orca_slicer_authorized, name='orca_slicer_authorized'),
+    # path('orca_slicer/authorized/', web_views.orca_slicer_authorized, name='orca_slicer_authorized'),  # OAuth2 server is disabled (config/urls.py)
 
     # tunnel v2 redirect and page with iframe
     re_path(
@@ -83,9 +83,10 @@ urlpatterns = [
 
     # Shown only in mobile apps
     *mobile_auth_urlpatterns,
-    path('mobile/auth/apple/', mobile_views.apple_login),
+    # Social login is disabled (see config/settings.py)
+    # path('mobile/auth/apple/', mobile_views.apple_login),
     path('mobile/auth/fetch/', mobile_views.fetch_session),
-    path('mobile/auth/oauth_callback/', mobile_views.oauth_callback),
+    # path('mobile/auth/oauth_callback/', mobile_views.oauth_callback),
 
     path('jusprin/', include('app.jusprin.urls')),
 ]

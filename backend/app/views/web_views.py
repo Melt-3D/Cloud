@@ -16,6 +16,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.views.decorators.clickjacking import xframe_options_exempt
 import requests
 import json
@@ -106,12 +107,17 @@ def delete_printer(request, pk=None):
     return redirect('/printers/')
 
 
+# Opened from the buttons in failure alert emails. GET only asks for confirmation; the action
+# needs the page's CSRF-protected POST, so a link or image on another site can't trigger it.
 @login_required
+@require_http_methods(['GET', 'POST'])
 def cancel_print(request, pk):
     _print = get_print_or_404(pk, request)
 
     if _print.id != _print.printer.current_print_id:
         succeeded = False
+    elif request.method != 'POST':
+        return render(request, 'print_action_confirm.html', {'print_obj': _print, 'action': 'cancel'})
     else:
         succeeded = _print.printer.cancel_print(initiator='web')
 
@@ -119,13 +125,18 @@ def cancel_print(request, pk):
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def resume_print(request, pk):
     _print = get_print_or_404(pk, request)
 
     if _print.id != _print.printer.current_print_id:
         succeeded = False
+    elif request.method != 'POST':
+        return render(request, 'print_action_confirm.html', {'print_obj': _print, 'action': 'resume'})
     else:
-        succeeded = _print.printer.resume_print(mute_alert=request.GET.get('mute_alert', False), initiator='web')
+        # The ?mute_alert=true on the email's "don't alert again" link was never acted on:
+        # Printer.resume_print() ignores it. Muting is Printer.mute_current_print().
+        succeeded = _print.printer.resume_print(initiator='web')
 
     return render(request, 'printer_acted.html', {'printer': _print.printer, 'action': 'resume', 'succeeded': succeeded})
 

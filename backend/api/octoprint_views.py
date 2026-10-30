@@ -14,6 +14,7 @@ from rest_framework import status
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.exceptions import ImproperlyConfigured
+from django.core.cache import cache as django_cache
 from django.http import Http404
 import json
 import io
@@ -288,15 +289,29 @@ class OctoPrinterDiscoveryView(APIView):
         return Response(discovery_response)
 
 
-class OneTimeVerificationCodeVerifyView(APIView):
-    throttle_classes = [AnonRateThrottle]
+class PrinterLinkRateThrottle(AnonRateThrottle):
+    # A printer verifies once, plus a few retries after a typo
+    scope = 'printer_link'
 
-    def get(self, request, *args, **kwargs):
-        # TODO is kept for backward compatibility
-        return self.post(request, *args, **kwargs)
+
+# Failed verifications from all clients together, so guessing codes from many IPs at once stops too
+LINK_FAILURES_CACHE_KEY = 'printer_link:failures'
+LINK_FAILURES_MAX = 100
+LINK_FAILURES_WINDOW_SECONDS = 10 * 60
+
+
+class OneTimeVerificationCodeVerifyView(APIView):
+    # Anonymous by design. Without authentication a logged-in session can't skip the anonymous throttle.
+    authentication_classes = ()
+    throttle_classes = [PrinterLinkRateThrottle]
 
     @report_validationerror
     def post(self, request, *args, **kwargs):
+        if (django_cache.get(LINK_FAILURES_CACHE_KEY) or 0) >= LINK_FAILURES_MAX:
+            return Response(
+                {'detail': 'Too many failed attempts to link printers. Try again in a few minutes.'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS)
+
         serializer = VerifyCodeInputSerializer(data={'code': request.GET.get('code')})
         serializer.is_valid(raise_exception=True)
 
@@ -320,6 +335,15 @@ class OneTimeVerificationCodeVerifyView(APIView):
             code.save()
             return Response(OneTimeVerificationCodeSerializer(code, many=False).data)
         else:
+            django_cache.add(LINK_FAILURES_CACHE_KEY, 0, LINK_FAILURES_WINDOW_SECONDS)
+            try:
+                failures = django_cache.incr(LINK_FAILURES_CACHE_KEY)
+            except ValueError:  # The window expired since add()
+                django_cache.set(LINK_FAILURES_CACHE_KEY, 1, LINK_FAILURES_WINDOW_SECONDS)
+                failures = 1
+            if failures == LINK_FAILURES_MAX:
+                LOGGER.warning('Printer linking paused: %s failed verification attempts in %s seconds',
+                    LINK_FAILURES_MAX, LINK_FAILURES_WINDOW_SECONDS)
             return Response({'detail': "Requested resource does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
 

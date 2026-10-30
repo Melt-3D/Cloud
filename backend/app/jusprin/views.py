@@ -20,7 +20,7 @@ import sentry_sdk
 from django.core.mail import EmailMessage
 from django.utils.translation import gettext_lazy as _
 
-from api.authentication import CsrfExemptSessionAuthentication
+from rest_framework.authentication import SessionAuthentication
 from .serializers import JusPrinChatSerializer, JusPrinAICreditSerializer, JusPrinMeSerializer
 from .models import JusPrinChat, JusPrinAICredit
 from .llm_chain import run_chain_on_chat
@@ -48,7 +48,7 @@ class JusPrinMeViewSet(viewsets.ViewSet):
     Consolidated ViewSet for user info and AI credits.
     """
     permission_classes = (IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
+    authentication_classes = (SessionAuthentication, OAuth2Authentication)
 
     def list(self, request):
         """
@@ -59,7 +59,7 @@ class JusPrinMeViewSet(viewsets.ViewSet):
 
 class JusPrinPlateAnalysisViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
+    authentication_classes = (SessionAuthentication, OAuth2Authentication)
 
     @require_ai_credits
     @observe(capture_input=False, capture_output=True)
@@ -79,7 +79,7 @@ class JusPrinPlateAnalysisViewSet(viewsets.ModelViewSet):
 
 class JusPrinChatViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
+    authentication_classes = (SessionAuthentication, OAuth2Authentication)
     serializer_class = JusPrinChatSerializer
 
     def get_queryset(self):
@@ -116,7 +116,7 @@ class JusPrinContactSupportRequestViewSet(viewsets.ViewSet):
     ViewSet for handling JusPrin support requests.
     """
     permission_classes = (IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
+    authentication_classes = (SessionAuthentication, OAuth2Authentication)
 
     def create(self, request):
         """
