@@ -198,6 +198,7 @@ import { getLocalPref, setLocalPref } from '@src/lib/pref'
 import SharePrinter from '@src/components/printers/SharePrinter.vue'
 import TerminalWidget from '../components/printer-control/TerminalWidget.vue'
 import DisplayStatusWidget from '../components/printer-control/DisplayStatusWidget.vue'
+import PowerControlWidget from '@src/components/printer-control/PowerControlWidget.vue'
 
 const RESUME_PRINT = '/resume_print/'
 const MUTE_CURRENT_PRINT = '/mute_current_print/?mute_alert=true'
@@ -237,6 +238,11 @@ const WIDGETS = [
     component: 'PrinterControlWidget',
   },
   {
+    id: 8,
+    title: 'Power',
+    component: 'PowerControlWidget',
+  },
+  {
     id: 6,
     title: 'Terminal Widget',
     component: 'TerminalWidget',
@@ -257,6 +263,7 @@ export default {
     FailureDetectionWidget,
     TemperatureWidget,
     PrinterControlWidget,
+    PowerControlWidget,
     TerminalWidget,
     DisplayStatusWidget,
   },
@@ -375,6 +382,11 @@ export default {
 
       // PrintJobControlWidget always shows
       if (widget.component === 'PrintJobControlWidget') return true
+
+      // Moonraker power devices remain available when Klippy is disconnected.
+      if (widget.component === 'PowerControlWidget') {
+        return this.printer.agent_connected && this.printer.isAgentMoonraker()
+      }
 
       // DisplayStatusWidget only shows when there's a message
       if (widget.component === 'DisplayStatusWidget') {

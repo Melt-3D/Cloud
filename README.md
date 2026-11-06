@@ -14,7 +14,7 @@ The AI failure detection in this project is based on a Deep Learning model. [See
 
 ## Prerequisites
 
-The Obico Server only requires a computer to run. Even old PCs (within the previous 10 years) will do just fine. An Nvidia GPU is optional but can vastly increase the power consumption and beef up the number of printers the server can handle.
+The Obico Server only requires a computer to run. Even old PCs (within the previous 10 years) will do just fine. GPU acceleration is optional but can vastly improve the number of printers the server can handle. NVIDIA CUDA and Intel OpenVINO acceleration are supported on Linux hosts; [see the hardware and GPU guides](https://www.obico.io/docs/server-guides/hardware-requirements/).
 
 [Detailed hardware minimum specs](https://www.obico.io/docs/server-guides/hardware-requirements/).
 
@@ -44,9 +44,12 @@ git clone -b release https://github.com/TheSpaghettiDetective/obico-server.git
     - If you are on Mac: `cd obico-server && docker-compose up -d`
     - If you are on Windows: `cd obico-server; docker-compose up -d`
 
-To use the NPU acceleration for RK3588 boards:
+To use the NPU acceleration for RK3588 boards, first build the base image it starts from — that one is not published on Docker Hub, and the build expects exactly this name. The `--build` on the last line matters if you already ran step 2: both commands produce the same image name, so without it Compose keeps the image you have and the NPU goes unused:
 ```bash
-cd obico-server && sudo docker compose -f docker-compose.yml -f docker-compose-rk3588.yml up -d
+cd obico-server
+sudo docker build --platform linux/arm64 -f ml_api/Dockerfile.base_rk3588 \
+  -t thespaghettidetective/ml_api_base:1.4-rk3588 ml_api
+sudo docker compose -f docker-compose.yml -f docker-compose-rk3588.yml up -d --build
 ```
 
 3. Go grab a coffee. Step 2 will take 15-30 minutes.
