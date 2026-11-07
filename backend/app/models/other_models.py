@@ -693,15 +693,19 @@ class OneTimeVerificationCodeManager(models.Manager):
         return super(OneTimeVerificationCodeManager, self).get_queryset().filter(expired_at__gte=timezone.now())
 
 
-def two_hours_later():
+def two_hours_later():  # Still referenced by migration 0045
     return timezone.now() + timedelta(hours=2)
+
+
+def thirty_minutes_later():
+    return timezone.now() + timedelta(minutes=30)
 
 
 class OneTimeVerificationCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False)
     printer = models.ForeignKey(Printer, on_delete=models.SET_NULL, blank=True, null=True)
     code = models.CharField(max_length=256, null=False, blank=False, db_index=True)
-    expired_at = models.DateTimeField(null=False, blank=False, default=two_hours_later, db_index=True)
+    expired_at = models.DateTimeField(null=False, blank=False, default=thirty_minutes_later, db_index=True)
     verified_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

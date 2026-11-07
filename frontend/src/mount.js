@@ -43,6 +43,7 @@ import { syndicate } from '@src/lib/page-context'
 import { syndicateTextConstant } from '@src/config/syndicateText'
 import { getLocalPref } from '@src/lib/pref'
 import i18next from '@src/i18n/i18n.js'
+import '@src/lib/axios-csrf'
 
 Vue.prototype.$syndicate = syndicate().name
 Vue.prototype.$syndicateText = syndicateTextConstant[syndicate().name||'base'] || syndicateTextConstant.base

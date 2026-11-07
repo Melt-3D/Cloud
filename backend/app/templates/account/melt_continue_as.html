@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Continue" %}{% endblock %}
+
+{% block page_css %}
+<style>
+  /* Centered in the space below the navbar */
+  .continue-as {
+    min-height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .continue-as-box {
+    max-width: 560px;
+    text-align: center;
+  }
+  .continue-as-box .btn {
+    margin: 0.25rem;
+  }
+</style>
+{% endblock page_css %}
+
+{% block content %}
+<div class="continue-as">
+  <div class="continue-as-box">
+    <h1>{% blocktrans with name=melt_user.name|default:melt_user.email %}Continue as {{ name }}?{% endblocktrans %}</h1>
+    <p>{% blocktrans with email=melt_user.email %}You're signed in to Melt3D as <strong>{{ email }}</strong>.{% endblocktrans %}</p>
+    <p class="text-muted"><small>
+      {% trans "Before you continue, check that this is your own email address. If it isn't, someone else's account is signed in on this browser: don't continue, and use a different account instead. Printers you link go to the account you continue as." %}
+    </small></p>
+    {# Signing in only happens on this POST, so a cookie planted by another site can't sign anyone in unnoticed. #}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">{% trans "Continue" %}</button>
+      <a class="btn btn-secondary" href="{{ switch_account_url }}">{% trans "Use a different account" %}</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

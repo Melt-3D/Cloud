@@ -20,7 +20,8 @@ from django.conf import settings
 urlpatterns = [
     path('', include('app.urls')),
     path('accounts/', include('allauth.urls')),
-    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    # OAuth2 server for OrcaSlicer / JusPrin is disabled: its 100-year tokens bypass Melt3D sign-in.
+    # path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
     path('invitations/', include('invitations.urls', namespace='invitations')),

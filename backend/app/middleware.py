@@ -9,8 +9,8 @@ from django.utils.http import http_date
 from django.urls import reverse, NoReverseMatch
 from django.contrib.sites.middleware import CurrentSiteMiddleware
 from django.contrib.sites.models import Site
+from django.http import Http404
 from django.http.request import split_domain_port
-from ipware import get_client_ip
 
 from .views import tunnelv2_views
 from lib.tunnelv2 import OctoprintTunnelV2Helper
@@ -87,6 +87,14 @@ class RefreshSessionMiddleware(SessionMiddleware):
         return response
 
 
+def proxied_client_ip(request):
+    # The web port is only published on localhost, so every request comes through cloudflared or
+    # tailscale serve. Each appends the address it saw to X-Forwarded-For; anything before that last
+    # entry is whatever the client sent.
+    forwarded_for = [ip.strip() for ip in request.META.get('HTTP_X_FORWARDED_FOR', '').split(',') if ip.strip()]
+    return forwarded_for[-1] if forwarded_for else request.META.get('REMOTE_ADDR')
+
+
 def check_admin_ip_whitelist(get_response):
     try:
         prefix = reverse('admin:index')
@@ -95,10 +103,15 @@ def check_admin_ip_whitelist(get_response):
         raise MiddlewareNotUsed
 
     def middleware(request):
-        if request.path.startswith(prefix) and settings.ADMIN_IP_WHITELIST:
-            client_ip, is_routable = get_client_ip(request)
-            if client_ip not in settings.ADMIN_IP_WHITELIST:
-                raise PermissionDenied()
+        if request.path.startswith(prefix):
+            # Admin only exists on the Tailscale host name, which a request through Cloudflare can't carry.
+            if settings.ADMIN_HOSTS and split_domain_port(request.get_host())[0] not in settings.ADMIN_HOSTS:
+                raise Http404()
+            if settings.ADMIN_IP_WHITELIST:
+                client_ip = proxied_client_ip(request)
+                if client_ip not in settings.ADMIN_IP_WHITELIST:
+                    LOGGER.warning('Admin access denied for %s', client_ip)
+                    raise PermissionDenied()
 
         response = get_response(request)
         return response

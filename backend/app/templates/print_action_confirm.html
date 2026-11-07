@@ -1,0 +1,28 @@
+{% extends "non_vue_layout.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-sm-11 col-md-10 col-lg-8 printer-acted">
+      <br /><br /><br />
+      <p>
+        {% if action == 'cancel' %}
+          {% blocktrans with filename=print_obj.filename printer_name=print_obj.printer.name %}Cancel the print <strong>"{{ filename }}"</strong> on {{ printer_name }}?{% endblocktrans %}
+        {% else %}
+          {% blocktrans with filename=print_obj.filename printer_name=print_obj.printer.name %}Resume the print <strong>"{{ filename }}"</strong> on {{ printer_name }}?{% endblocktrans %}
+        {% endif %}
+      </p>
+      {# Links in alerts only open this page. The action needs this CSRF-protected form, so another site can't trigger it. #}
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn {% if action == 'cancel' %}btn-danger{% else %}btn-primary{% endif %}">
+          {% if action == 'cancel' %}{% trans "Cancel print" %}{% else %}{% trans "Resume print" %}{% endif %}
+        </button>
+        <a class="btn btn-secondary" href="/printers/{{ print_obj.printer.id }}/control/" role="button">{% trans "Go to webcam view" %}</a>
+      </form>
+      <br /><br /><br />
+    </div>
+  </div>
+</div>
+{% endblock content %}
