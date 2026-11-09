@@ -290,7 +290,8 @@ RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
 
 # Melt3D accounts (app/melt_auth.py). Unset: Obico's own sign-in.
 MELT_AUTH_URL = os.environ.get('MELT_AUTH_URL', '')
-MELT_AUTH_SESSION_COOKIE = os.environ.get('MELT_AUTH_SESSION_COOKIE', '')
+# Shared with the auth server (its HANDOFF_SECRET), to redeem sign-in tickets.
+MELT_AUTH_HANDOFF_SECRET = os.environ.get('MELT_AUTH_HANDOFF_SECRET', '')
 MELT_AUTH_RECHECK_SECONDS = int(os.environ.get('MELT_AUTH_RECHECK_SECONDS') or 15 * 60)
 
 # Allauth

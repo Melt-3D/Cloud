@@ -14,6 +14,7 @@ if getattr(settings, 'MELT_AUTH_URL', ''):
         path('accounts/login/', melt_auth.login_redirect, name='account_login'),
         path('accounts/signup/', melt_auth.signup_redirect, name='account_signup'),
         path('accounts/logout/', melt_auth.logout_redirect, name='account_logout'),
+        path('accounts/melt3d/session/', melt_auth.handoff_return, name='melt_auth_session'),
         path('accounts/email/', melt_auth.account_redirect, name='account_email'),
         path('accounts/password/change/', melt_auth.password_redirect, name='account_change_password'),
         path('accounts/password/reset/', melt_auth.password_redirect, name='account_reset_password'),

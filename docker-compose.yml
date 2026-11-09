@@ -4,8 +4,8 @@ x-web-defaults: &web-defaults
     context: backend
     dockerfile: 'Dockerfile'
   volumes:
-    - ./backend:/app
-    - ./frontend:/frontend
+    - ./backend:/app:z
+    - ./frontend:/frontend:z
   depends_on:
     - redis
   environment:
@@ -48,7 +48,7 @@ x-web-defaults: &web-defaults
     JUSPRIN_BRAND_NAME: '${JUSPRIN_BRAND_NAME-JusPrin}'
     SITE_ID: '${SITE_ID-4}'
     MELT_AUTH_URL: '${MELT_AUTH_URL-}'
-    MELT_AUTH_SESSION_COOKIE: '${MELT_AUTH_SESSION_COOKIE-}'
+    MELT_AUTH_HANDOFF_SECRET: '${MELT_AUTH_HANDOFF_SECRET-}'
     MELT_AUTH_RECHECK_SECONDS: '${MELT_AUTH_RECHECK_SECONDS-}'
 
 services:

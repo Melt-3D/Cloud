@@ -75,3 +75,13 @@
 # LLM_BASE_URL=
 # VLM_API_KEY=
 # VLM_BASE_URL=
+
+# MELT_AUTH_URL=https://auth.melt3d.eu
+# Sign in with Melt3D accounts instead of Obico's own sign-in. This site's origin
+# must be in the auth server's HANDOFF_ORIGINS and TRUSTED_ORIGINS.
+
+# MELT_AUTH_HANDOFF_SECRET=
+# The auth server's HANDOFF_SECRET (`wrangler secret put HANDOFF_SECRET` there)
+
+# MELT_AUTH_RECHECK_SECONDS=900
+# How often a signed-in session is re-checked with the auth server
