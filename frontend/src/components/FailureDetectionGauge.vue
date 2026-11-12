@@ -46,7 +46,7 @@ export default {
         highlight1: currentThemeValue() === Themes.Light ? '#929292' : '#8395a7',
         highlight2: currentThemeValue() === Themes.Light ? '#b7b7b7' : '#a8bacc',
         highlight3: currentThemeValue() === Themes.Light ? '#7b7b7b' : '#6c7e90',
-        needle: currentThemeValue() === Themes.Light ? '#373334' : '#ffffff',
+        needle: currentThemeValue() === Themes.Light ? '#141414' : '#ffffff',
       }
 
       return {
@@ -63,11 +63,11 @@ export default {
         highlights: [
           { from: 0, to: 33, color: this.isWatching ? '#5cb85c' : inactiveColor.highlight1 },
           { from: 33, to: 67, color: this.isWatching ? '#f0ad4e' : inactiveColor.highlight2 },
-          { from: 67, to: 100, color: this.isWatching ? '#d9534f' : inactiveColor.highlight3 },
+          { from: 67, to: 100, color: this.isWatching ? '#F08070' : inactiveColor.highlight3 },
         ],
         colorPlate: 'rgba(255,255,255,.0)',
         colorTitle: '#5cb85c',
-        colorStrokeTicks: '#EBEBEB',
+        colorStrokeTicks: '#FAFAFA',
         colorNeedleEnd: this.isWatching ? 'rgba(255, 160, 122, .9)' : inactiveColor.needle,
         colorNeedle: this.isWatching ? 'rgba(240, 128, 128, 1)' : inactiveColor.needle,
         colorNeedleShadowUp: this.isWatching ? 'rgba(2,255,255,0.2)' : inactiveColor.needle,
@@ -108,7 +108,7 @@ export default {
         case 1:
           return '#f0ad4e'
         case 2:
-          return '#d9534f'
+          return '#F08070'
         default:
           return '#5cb85c'
       }
@@ -146,7 +146,7 @@ export default {
     margin-bottom: -150px
     pointer-events: none
   hr
-    background-color: #EBEBEB
+    background-color: #FAFAFA
     height: 1px
     margin-top: 15px
 </style>

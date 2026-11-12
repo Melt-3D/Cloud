@@ -8,6 +8,6 @@ services:
 
   ml_api:
     volumes:
-      - ./ml_api:/app
+      - ./ml_api:/app:z
     ports:
       - 3333:3333

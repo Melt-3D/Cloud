@@ -166,7 +166,7 @@ export default {
       width: 70%;
       margin-top:20px;
       h4 {
-        color: #EBEBEB;
+        color: #FAFAFA;
         font-size: 22px;
         line-height:34px;
         margin-top: 1em;
@@ -198,7 +198,7 @@ export default {
     }
   }
   .klipper-wrap{
-    color:#EBEBEB;
+    color:#FAFAFA;
     font-size:20px;
   }
   .printer-item{

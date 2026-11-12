@@ -18,12 +18,12 @@
         >
           <b-form-radio
             value="detective"
-            class="no-corner no-shadow"
+            class="no-shadow"
             :disabled="!canShowDetectiveView"
           >
             <i class="fas fa-balance-scale"></i>
           </b-form-radio>
-          <b-form-radio value="info" class="no-corner no-shadow">
+          <b-form-radio value="info" class="no-shadow">
             <i class="fas fa-info"></i>
           </b-form-radio>
         </b-form-radio-group>
