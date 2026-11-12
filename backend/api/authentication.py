@@ -58,7 +58,9 @@ class MeltTokenAuthentication(BaseAuthentication):
 
         if not melt_auth.has_access(access):
             raise AuthenticationFailed('This Melt3D account has no access to Melt Cloud')
-        return melt_auth.user_for(access['user'], syndicate_from_request(request)), None
+        # The Django request: DRF's own `user` is what is being worked out here,
+        # and syndicate_from_request asks for it.
+        return melt_auth.user_for(access['user'], syndicate_from_request(request._request)), None
 
     def authenticate_header(self, request):
         return 'Bearer'
