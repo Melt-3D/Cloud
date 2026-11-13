@@ -493,15 +493,26 @@ class GCodeFileViewSet(viewsets.ModelViewSet):
     authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
     pagination_class = GCodeFilePagination
 
+    def is_create(self):
+        # Not `self.action`: DRF sets it only after the authenticators are
+        # picked. The action map and the request are there from the start.
+        return self.action_map.get(self.request.method.lower()) == 'create'
+
     def get_authenticators(self):
         # The Melt3D Slicer's Print button uploads with the account's token
         # (MeltTokenAuthentication). The token may only add a file: listing,
-        # changing and deleting stay with a session. `action` is already set
-        # here (ViewSetMixin.initialize_request sets it first).
+        # changing and deleting stay with a session.
         authenticators = super().get_authenticators()
-        if getattr(self, 'action', None) == 'create':
+        if self.is_create():
             authenticators.append(MeltTokenAuthentication())
         return authenticators
+
+    def get_authenticate_header(self, request):
+        # 401 with `WWW-Authenticate: Bearer`, not 403, for a refused token, so
+        # the Slicer asks again with a fresh one.
+        if self.is_create():
+            return MeltTokenAuthentication().authenticate_header(request)
+        return super().get_authenticate_header(request)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
