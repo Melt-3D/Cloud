@@ -294,6 +294,15 @@ MELT_AUTH_URL = os.environ.get('MELT_AUTH_URL', '')
 MELT_AUTH_HANDOFF_SECRET = os.environ.get('MELT_AUTH_HANDOFF_SECRET', '')
 MELT_AUTH_RECHECK_SECONDS = int(os.environ.get('MELT_AUTH_RECHECK_SECONDS') or 15 * 60)
 
+# The Melt3D Slicer uploads G-code to print (POST /api/v1/g_code_files/ with the
+# account's token, api/authentication.py's MeltTokenAuthentication). Its pages
+# call from their own origin, so that collection, and nothing else, answers CORS,
+# to these origins only: a JSON list, e.g.
+# ["https://slicer.melt3d.eu", "https://<pr preview host>"].
+MELT_SLICER_ORIGINS = json.loads(os.environ.get('MELT_SLICER_ORIGINS') or '["https://slicer.melt3d.eu"]')
+CORS_ALLOWED_ORIGINS = MELT_SLICER_ORIGINS
+CORS_URLS_REGEX = r'^/api/v1/g_code_files/$'
+
 # Allauth
 
 AUTHENTICATION_BACKENDS = (
