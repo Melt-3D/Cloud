@@ -17,6 +17,7 @@ from api.octoprint_views import *
 from api.octoprint_messages import process_printer_status
 from api.serializers import PrinterSerializer
 from lib import channels
+from app.test_melt_auth import AUTH, access as melt_access, answer as melt_answer
 
 
 def setup_syndicate():
@@ -125,6 +126,36 @@ class GCodeFileUploadTestCase(TestCase):
         self.assertEqual(gcode_file.filament_total, 12.5)
         parse.assert_called_once()
         save_file_obj.assert_called_once()
+
+
+@override_settings(SITE_ID=1, MELT_AUTH_URL=AUTH)
+@patch('api.viewsets.save_file_obj', return_value=('internal-url', 'external-url'))
+class MeltTokenGCodeFileUploadTestCase(TestCase):
+    """The Melt3D Slicer's Print button: an upload with the account's token."""
+
+    def setUp(self):
+        setup_syndicate()
+
+    def upload(self):
+        return self.client.post(
+            '/api/v1/g_code_files/',
+            {'filename': 'plate.gcode', 'file': SimpleUploadedFile('plate.gcode', b'G1 X10 E1\n')},
+            HTTP_AUTHORIZATION='Bearer app-token',
+        )
+
+    def test_a_token_uploads_for_its_account(self, save_file_obj):
+        with patch('app.melt_auth.requests.get', return_value=melt_answer(200, melt_access())):
+            self.assertEqual(self.upload().status_code, 201)
+        self.assertEqual(GCodeFile.objects.get().user.email, 'maker@example.com')
+
+    def test_an_ended_token_is_refused(self, save_file_obj):
+        with patch('app.melt_auth.requests.get', return_value=melt_answer(401)):
+            self.assertEqual(self.upload().status_code, 401)
+
+    def test_a_token_only_uploads(self, save_file_obj):
+        with patch('app.melt_auth.requests.get', return_value=melt_answer(200, melt_access())):
+            resp = self.client.get('/api/v1/g_code_files/', HTTP_AUTHORIZATION='Bearer app-token')
+        self.assertIn(resp.status_code, (401, 403))
 
 
 class AgentGCodeFileTestCase(SimpleTestCase):
