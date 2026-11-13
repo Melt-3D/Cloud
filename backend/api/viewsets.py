@@ -29,7 +29,7 @@ import pytz
 from django.utils.dateparse import parse_datetime
 
 from .utils import report_validationerror
-from .authentication import CsrfExemptSessionAuthentication
+from .authentication import CsrfExemptSessionAuthentication, MeltTokenAuthentication
 from .pagination import GCodeFilePagination
 from .print_stats import stats_parameters, summarize_prints
 from app.models import (
@@ -492,6 +492,16 @@ class GCodeFileViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
     pagination_class = GCodeFilePagination
+
+    def get_authenticators(self):
+        # The Melt3D Slicer's Print button uploads with the account's token
+        # (MeltTokenAuthentication). The token may only add a file: listing,
+        # changing and deleting stay with a session. `action` is already set
+        # here (ViewSetMixin.initialize_request sets it first).
+        authenticators = super().get_authenticators()
+        if getattr(self, 'action', None) == 'create':
+            authenticators.append(MeltTokenAuthentication())
+        return authenticators
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

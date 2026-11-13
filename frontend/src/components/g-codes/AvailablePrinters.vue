@@ -48,6 +48,8 @@ import { normalizedPrinter } from '@src/lib/normalizers'
 import { sendToPrint, showRedirectModal, confirmPrint } from './sendToPrint'
 import { printerCommManager } from '@src/lib/printer-comm'
 
+const AUTO_PRINT_WAIT_MS = 15000
+
 export default {
   name: 'AvailablePrinters',
 
@@ -71,6 +73,12 @@ export default {
       type: Boolean,
       default: true,
     },
+    // Sent here by the Melt3D Slicer's Print button (`?print=1`): offer to
+    // print on the one printer ready for it, as if its Print button was clicked.
+    printRequested: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -80,6 +88,9 @@ export default {
       printersLoading: true,
       printerStateCheckInterval: null,
       printerComms: {},
+      // Until when printRequested may still open the confirm. Printers report
+      // their state over the websocket a moment after the page loads.
+      autoPrintUntil: this.printRequested ? Date.now() + AUTO_PRINT_WAIT_MS : 0,
     }
   },
 
@@ -88,6 +99,15 @@ export default {
       return this.printers.some(
         (p) => p.calculatedState() === 'Starting' || p.calculatedState() === 'G-Code Downloading'
       )
+    },
+  },
+
+  watch: {
+    printers() {
+      this.maybeAutoPrint()
+    },
+    gcode() {
+      this.maybeAutoPrint()
     },
   },
 
@@ -132,6 +152,7 @@ export default {
       }
 
       this.printersLoading = false
+      this.maybeAutoPrint()
     },
     selectPrinter(printer) {
       if (!printer.isPrintable()) {
@@ -147,6 +168,24 @@ export default {
       }
 
       this.selectedPrinter = printer
+    },
+    maybeAutoPrint() {
+      if (!this.autoPrintUntil || !this.gcode || this.printersLoading) return
+      if (Date.now() > this.autoPrintUntil) {
+        this.autoPrintUntil = 0
+        return
+      }
+      const ready = this.printers.filter((p) => p && p.isPrintable())
+      if (ready.length !== 1) return
+
+      // Once only, and not again on a reload.
+      this.autoPrintUntil = 0
+      const url = new URL(window.location.href)
+      url.searchParams.delete('print')
+      window.history.replaceState(window.history.state, '', url.toString())
+
+      this.selectedPrinter = ready[0]
+      this.onPrintClicked()
     },
     onPrintClicked() {
       if (!this.selectedPrinter?.id) return

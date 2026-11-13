@@ -99,6 +99,7 @@
               :target-printer-id="targetPrinterId || selectedPrinterId"
               :gcode="gcode"
               :is-cloud="isCloud"
+              :print-requested="printRequested"
               @refresh="onRefresh"
             />
           </b-col>
@@ -206,6 +207,10 @@ export default {
     },
     isDeleted() {
       return !!this.gcode?.deleted
+    },
+    // The Melt3D Slicer's Print button lands here with ?print=1.
+    printRequested() {
+      return this.isCloud && !this.isPopup && new URLSearchParams(window.location.search).get('print') === '1'
     },
     dropdownMenuOptions() {
       const menuOptions = [

@@ -85,3 +85,6 @@
 
 # MELT_AUTH_RECHECK_SECONDS=900
 # How often a signed-in session is re-checked with the auth server
+
+# MELT_SLICER_ORIGINS=["https://slicer.melt3d.eu"]
+# Origins of the Melt3D Slicer pages that send G-code here to print (a JSON list)
