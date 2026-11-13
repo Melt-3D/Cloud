@@ -30,7 +30,6 @@ from django.utils.dateparse import parse_datetime
 
 from .utils import report_validationerror
 from .authentication import CsrfExemptSessionAuthentication, MeltTokenAuthentication
-from app.melt_auth import absolute_url
 from .pagination import GCodeFilePagination
 from .print_stats import stats_parameters, summarize_prints
 from app.models import (
@@ -494,6 +493,16 @@ class GCodeFileViewSet(viewsets.ModelViewSet):
     authentication_classes = (CsrfExemptSessionAuthentication, OAuth2Authentication)
     pagination_class = GCodeFilePagination
 
+    def get_authenticators(self):
+        # The Melt3D Slicer's Print button uploads with the account's token
+        # (MeltTokenAuthentication). The token may only add a file: listing,
+        # changing and deleting stay with a session. `action` is already set
+        # here (ViewSetMixin.initialize_request sets it first).
+        authenticators = super().get_authenticators()
+        if getattr(self, 'action', None) == 'create':
+            authenticators.append(MeltTokenAuthentication())
+        return authenticators
+
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return GCodeFileSerializer
@@ -630,25 +639,6 @@ class GCodeFileViewSet(viewsets.ModelViewSet):
 
     def path_in_storage(self, gcode_file):
         return f'{gcode_file.user.id}/{gcode_file.id}'
-
-
-class MeltGCodeFileUploadViewSet(GCodeFileViewSet):
-    """
-    POST /api/v1/melt/g_code_files/: the Melt3D Slicer's Print button. The same
-    upload as GCodeFileViewSet.create (`file` and `filename` as multipart form
-    fields), signed in with the Melt3D account's token instead of a session.
-    The answer adds `print_url`, the file's page, where the Slicer sends the
-    browser: with `?print=1` it offers to print on the one printer ready for it
-    (frontend AvailablePrinters.vue).
-    """
-    authentication_classes = (MeltTokenAuthentication,)
-
-    def create(self, request):
-        response = super().create(request)
-        if response.status_code == status.HTTP_201_CREATED:
-            response.data['print_url'] = absolute_url(
-                request, f'/g_code_files/cloud/{response.data["id"]}/?print=1')
-        return response
 
 
 class PrintShotFeedbackViewSet(mixins.RetrieveModelMixin,

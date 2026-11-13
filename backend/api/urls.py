@@ -54,7 +54,4 @@ urlpatterns = [
     path('v1/octo/printer_events/', octoprint_views.PrinterEventView.as_view()),
 
     path('v1/version/', viewsets.ApiVersionView.as_view()),
-
-    # Upload only: the Melt3D Slicer's token reaches nothing else.
-    path('v1/melt/g_code_files/', viewsets.MeltGCodeFileUploadViewSet.as_view({'post': 'create'})),
 ]

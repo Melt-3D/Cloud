@@ -212,7 +212,7 @@ def melt_auth(get_response):
 # --- The views ----------------------------------------------------------------
 
 
-def absolute_url(request, url):
+def _absolute(request, url):
     url = request.build_absolute_uri(url)
     # Behind a TLS-terminating proxy Django sees http; the auth server only returns to https.
     if settings.SITE_USES_HTTPS and url.startswith('http://'):
@@ -244,7 +244,7 @@ def _start_handoff(request, mode, default_next):
     request.session[SESSION_PENDING] = pending
 
     # The state travels in return_to too, to pick this sign-in out of the pending ones.
-    return_to = absolute_url(request, reverse('melt_auth_session') + '?' + urlencode({'state': state}))
+    return_to = _absolute(request, reverse('melt_auth_session') + '?' + urlencode({'state': state}))
     return redirect(_portal('/handoff', return_to=return_to, state=state, mode=mode))
 
 
@@ -273,7 +273,7 @@ def handoff_return(request):
 
     if not has_access(access):
         if access.get('signedIn') is True:
-            return redirect(_portal('/no-access', redirect_url=absolute_url(request, next_url)))
+            return redirect(_portal('/no-access', redirect_url=_absolute(request, next_url)))
         return _try_again('This sign-in did not go through.')
 
     user = user_for(access['user'], syndicate_from_request(request))
