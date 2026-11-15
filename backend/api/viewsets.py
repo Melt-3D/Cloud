@@ -496,10 +496,14 @@ class GCodeFileViewSet(viewsets.ModelViewSet):
     def get_authenticators(self):
         # The Melt3D Slicer's Print button uploads with the account's token
         # (MeltTokenAuthentication). The token may only add a file: listing,
-        # changing and deleting stay with a session. `action` is already set
-        # here (ViewSetMixin.initialize_request sets it first).
+        # changing and deleting stay with a session. `action` is not set yet:
+        # ViewSetMixin.initialize_request builds the request, which asks for
+        # these, and only then sets it. So the action is read the way it will
+        # be, from the method, through the `action_map` that as_view set.
         authenticators = super().get_authenticators()
-        if getattr(self, 'action', None) == 'create':
+        request = getattr(self, 'request', None)
+        method = request.method.lower() if request is not None else None
+        if getattr(self, 'action_map', {}).get(method) == 'create':
             authenticators.append(MeltTokenAuthentication())
         return authenticators
 
