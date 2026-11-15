@@ -18,7 +18,7 @@ on:
 concurrency:
   group: build-images-${{ github.ref }}
   # Not cancelled. This workflow moves tags in a registry one at a time, and a
-  # cancellation between two of them leaves the CalVer pointing at the new
+  # cancellation between two of them leaves the version pointing at the new
   # digest while release and latest still point at the old one, with nothing
   # reporting the split. It runs a handful of times a week, so the runner time
   # a superseded run costs is worth less than that.
@@ -32,26 +32,28 @@ permissions:
 
 jobs:
   # Compute the shared namespace and version once so the image builds and the
-  # chart publish agree on a single value. If these were computed independently
-  # in two jobs, a commit crossing a UTC midnight boundary between them could
-  # produce two different CalVers and the chart would pin image tags that were
-  # never pushed.
+  # chart publish agree on a single value, and so exactly one job releases.
   version:
     runs-on: ubuntu-latest
-    # Reads the git history and computes strings. Nothing else.
+    # semantic-release pushes the v<version> tag and creates the release, as a
+    # draft that github-release publishes once the chart is out. A tag pushed
+    # with GITHUB_TOKEN starts no workflow, so it cannot re-trigger this one.
+    # .releaserc.json turns off the plugin's PR and issue comments, so neither
+    # issues: nor pull-requests: write is needed.
     permissions:
-      contents: read
-    timeout-minutes: 5
+      contents: write
+    timeout-minutes: 10
     outputs:
       ns: ${{ steps.ns.outputs.ns }}
       version: ${{ steps.ver.outputs.version }}
+      published: ${{ steps.ver.outputs.published }}
       short_sha: ${{ steps.ver.outputs.short_sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Full history so the commit date and any tags are available for
-          # versioning.
+          # Full history so semantic-release can find the last release tag and
+          # read the commits since.
           fetch-depth: 0
 
       - name: Compute image namespace (GHCR requires a lowercase owner)
@@ -65,27 +67,61 @@ jobs:
           set -euo pipefail
           echo "ns=ghcr.io/$(echo "${OWNER}" | tr '[:upper:]' '[:lower:]')" >> "${GITHUB_OUTPUT}"
 
+      # semantic-release installs itself with the npm on PATH.
+      - uses: actions/setup-node@v4
+        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        with:
+          node-version: 22
+
+      # Conventional Commits since the last v tag decide (.releaserc.json, the
+      # same rules as Melt-3D/Slicer): feat -> minor, fix and perf -> patch, a
+      # breaking change -> minor too while the major is 0, anything else -> no
+      # release. The release PR's own title does not count: it lands as a
+      # merge commit, and only the commits it brings are read.
+      - name: Release
+        id: semrel
+        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          # The default (angular) preset cannot read a `!` breaking-change
+          # marker. Major 8 matches the conventional-changelog-writer 8 that
+          # release-notes-generator brings.
+          extra_plugins: |
+            conventional-changelog-conventionalcommits@8.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compute version
         id: ver
+        env:
+          LAST_RELEASE: ${{ steps.semrel.outputs.last_release_version }}
         run: |
-          # The release branch carries no tag or in-repo VERSION, so derive a
-          # CalVer from the commit date (UTC) — deterministic and monotonic with
-          # commit order. It is day-granular: two commits on the same UTC day
-          # share it, and the second run moves the tag. The sha-<short> tag below
-          # is the immutable, guaranteed-unique per-commit pin, and the combined
-          # <calver>-g<short> tag is the human-readable form of the same pin —
-          # the g is load-bearing, see the note on it in publish-chart. If
-          # the project ever starts tagging releases, an exact tag on the commit
-          # takes precedence.
+          # A commit with a v tag is a release: the one semantic-release just
+          # cut, or one cut by an earlier run of the same commit, which then
+          # publishes the same names again. Its version is published bare, on
+          # the images and as the chart. A commit without one (only chores, or
+          # a manual run from a branch) is still built and deployed, but only
+          # under its per-commit names, sha-<short> and <version>-g<short>,
+          # where <version> is the last release.
+          #
+          # sha-<short> is the immutable, guaranteed-unique per-commit pin, and
+          # <version>-g<short> is the human-readable form of the same pin. The
+          # g is load-bearing, see the note on it in publish-chart.
           set -euo pipefail
-          tag="$(git describe --tags --exact-match 2>/dev/null || true)"
+          short_sha="$(git rev-parse --short HEAD)"
+          tag="$(git tag --points-at HEAD --list 'v*' | sort -V | tail -n 1)"
           if [ -n "${tag}" ]; then
-            version="${tag#v}"
+            version="${tag#v}" published=true
+            echo "::notice::release ${tag}"
           else
-            version="$(date -u -d "@$(git show --no-patch --format=%ct HEAD)" +'%Y.%-m.%-d')"
+            last="${LAST_RELEASE:-$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)}"
+            last="${last#v}"
+            version="${last:-0.0.0}" published=false
+            echo "::notice::no release in this push; publishing only the per-commit names"
           fi
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
-          echo "short_sha=$(git rev-parse --short HEAD)" >> "${GITHUB_OUTPUT}"
+          echo "published=${published}" >> "${GITHUB_OUTPUT}"
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
 
   # Multi-arch images (web and the slim CPU ml-api) are built once per platform
   # on native runners — no QEMU — and pushed by digest only; the tags are
@@ -339,12 +375,12 @@ jobs:
         with:
           images: ${{ needs.version.outputs.ns }}/obico-${{ matrix.name }}
           tags: |
-            # The bare CalVer is day-granular, so a second build on the same
-            # UTC day moves it. That makes it a moving tag and it is gated like
-            # the other two: a manual run from a branch would otherwise
-            # repoint a released name at a branch build. The two names below
-            # it carry the commit and are safe from anywhere.
-            type=raw,value=${{ needs.version.outputs.version }},enable={{is_default_branch}}
+            # The bare version names a release, so only a commit with that
+            # release's tag publishes it: a push without one carries the last
+            # release's version and would otherwise move that name onto a
+            # build it does not describe. The two names below it carry the
+            # commit and are safe from anywhere.
+            type=raw,value=${{ needs.version.outputs.version }},enable=${{ needs.version.outputs.published == 'true' }}
             type=raw,value=${{ needs.version.outputs.version }}-g${{ needs.version.outputs.short_sha }}
             type=raw,value=sha-${{ needs.version.outputs.short_sha }}
             type=raw,value=release,enable={{is_default_branch}}
@@ -447,8 +483,9 @@ jobs:
           # latest have moved does not protect them. Everything else goes
           # first, checked against the signed digest one at a time; only if
           # imagetools reproduced it do release and latest follow. Note the
-          # first pass is not all immutable: the bare CalVer is day-granular,
-          # which is why it carries a default-branch gate above. What the
+          # first pass is not all immutable: the bare version is rewritten when
+          # a release commit is re-run, which is why it carries a
+          # default-branch gate above. What the
           # split buys is that the two names a bare docker pull lands on are
           # the last to move, and only after the rest verified. The signing
           # step already refuses to trust imagetools to preserve a digest —
@@ -465,7 +502,7 @@ jobs:
           # One at a time, each checked before the next exists. Creating them in
           # a single call and checking afterwards would leave every fixed name
           # pointing at an unverified digest the moment one of them drifted —
-          # and <calver>-g<short> is the only published name that is both
+          # and <version>-g<short> is the only published name that is both
           # immutable and readable, so it is the one that least deserves that.
           while read -r tag; do
             docker buildx imagetools create "${annotation_args[@]}" -t "${tag}" "${REF}" < /dev/null
@@ -758,7 +795,7 @@ jobs:
         with:
           images: ${{ needs.version.outputs.ns }}/obico-${{ matrix.name }}
           tags: |
-            type=raw,value=${{ needs.version.outputs.version }},enable={{is_default_branch}}
+            type=raw,value=${{ needs.version.outputs.version }},enable=${{ needs.version.outputs.published == 'true' }}
             type=raw,value=${{ needs.version.outputs.version }}-g${{ needs.version.outputs.short_sha }}
             type=raw,value=sha-${{ needs.version.outputs.short_sha }}
             type=raw,value=release,enable={{is_default_branch}}
@@ -825,8 +862,9 @@ jobs:
           # latest have moved does not protect them. Everything else goes
           # first, checked against the signed digest one at a time; only if
           # imagetools reproduced it do release and latest follow. Note the
-          # first pass is not all immutable: the bare CalVer is day-granular,
-          # which is why it carries a default-branch gate above. What the
+          # first pass is not all immutable: the bare version is rewritten when
+          # a release commit is re-run, which is why it carries a
+          # default-branch gate above. What the
           # split buys is that the two names a bare docker pull lands on are
           # the last to move, and only after the rest verified. The signing
           # step already refuses to trust imagetools to preserve a digest —
@@ -843,7 +881,7 @@ jobs:
           # One at a time, each checked before the next exists. Creating them in
           # a single call and checking afterwards would leave every fixed name
           # pointing at an unverified digest the moment one of them drifted —
-          # and <calver>-g<short> is the only published name that is both
+          # and <version>-g<short> is the only published name that is both
           # immutable and readable, so it is the one that least deserves that.
           # Every create here is a bare alias, like the one above: with no
           # --annotation buildx copies the source bytes instead of rebuilding
@@ -877,7 +915,7 @@ jobs:
       id-token: write
     timeout-minutes: 30
     # needs the image jobs so the packaged chart never pins image tags that are
-    # not pushed yet, and needs version for the shared namespace/CalVer outputs.
+    # not pushed yet, and needs version for the shared namespace/version outputs.
     # The best-effort Jetson leg cannot gate this: it is continue-on-error, so
     # build-single stays green even when that image fails to build.
     needs: [version, merge-manifests, sign-single]
@@ -938,11 +976,9 @@ jobs:
           # namespace the build job actually pushed to — correct whether the
           # workflow runs on upstream or a fork, not only when the owner matches
           # the in-repo defaults — and pin each image to its immutable per-commit
-          # sha-<short> tag, so a second release commit on the same UTC day cannot
-          # silently move the images a published chart references (the CalVer tag
-          # is day-granular and would). The chart itself is versioned by the
-          # build's CalVer, with appVersion set to the same CalVer; CalVer is
-          # valid semver, so it is a legal chart version. This mutates only the
+          # sha-<short> tag, so a rebuild cannot silently move the images a
+          # published chart references. The chart itself is versioned by the
+          # release version, with appVersion set to the same version. This mutates only the
           # throwaway CI workspace; the in-repo values.yaml (empty tag -> the
           # "release" fallback) and Chart.yaml version stay as-is for git-based
           # installs. yq preserves the surrounding comments.
@@ -1001,20 +1037,19 @@ jobs:
             exit 1
           fi
 
-      # Ahead of the push. helm push mints the CalVer tag itself, so unlike the
+      # Ahead of the push. helm push mints the version tag itself, so unlike the
       # image jobs that name cannot wait for the signature — but everything
       # else can, and a cosign download failing after the push must not be what
       # leaves a published chart unsigned. The same window as in
       # merge-manifests, for the same reason: between helm push and cosign
-      # sign the CalVer exists unsigned. Installing cosign first moves the
+      # sign the version exists unsigned. Installing cosign first moves the
       # likely causes of a signing failure to before the push rather than
       # after it.
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
 
       # Ahead of the push for the same reason as cosign above: if this download
-      # fails afterwards the chart is published carrying only the day-granular
-      # CalVer, and the only immutable name it could be pinned by never
+      # fails afterwards the chart is published carrying only the version tag, and the only immutable name it could be pinned by never
       # appears.
       - name: Set up ORAS
         uses: oras-project/setup-oras@v1
@@ -1023,20 +1058,20 @@ jobs:
         run: helm package charts/obico
 
       - name: Say why nothing was published
-        if: ${{ github.ref_name != github.event.repository.default_branch }}
+        if: ${{ needs.version.outputs.published != 'true' }}
         env:
-          BRANCH: ${{ github.ref_name }}
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
-          echo "::notice::chart packaged but not published: this is ${BRANCH}, not the default branch. The chart's only tag is a day-granular CalVer, so publishing from a branch would overwrite the released one."
+          echo "::notice::chart packaged but not published: this commit is no release. The chart's only tag is its version, and ${VERSION} is the last release's, which this build does not describe."
 
       # The image jobs gate their moving tags on the default branch; the chart
-      # has no immutable-only mode, because helm push mints the day-granular
-      # CalVer itself. A manual run from a feature branch on the same UTC day
-      # as a release would therefore overwrite the published chart. Everything
+      # has no immutable-only mode, because helm push mints the bare version
+      # itself. A manual run from a feature branch would therefore publish a
+      # branch build under the next release's version. Everything
       # up to the package is still exercised, which is the part worth running
       # by hand.
       - name: Push the chart to GHCR as an OCI artifact
-        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        if: ${{ needs.version.outputs.published == 'true' }}
         id: push
         env:
           NS: ${{ needs.version.outputs.ns }}
@@ -1061,28 +1096,28 @@ jobs:
           echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
 
       - name: Sign the chart (keyless)
-        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        if: ${{ needs.version.outputs.published == 'true' }}
         env:
           REF: ${{ needs.version.outputs.ns }}/charts/obico
           DIGEST: ${{ steps.push.outputs.digest }}
         run: cosign sign --yes "${REF}@${DIGEST}"
 
       # Every image this chart pins is immutable, but the chart pinning them was
-      # not: helm push mints exactly one tag, the day-granular CalVer, so a
-      # second release commit on the same UTC day moves it under everyone
-      # already pulling that version. Add a per-commit tag pointing at the same
+      # not: helm push mints exactly one tag, the bare version, and a re-run
+      # of a release commit pushes it again under everyone already pulling
+      # that version. Add a per-commit tag pointing at the same
       # digest — oras tag adds a reference without touching the artifact, so
       # both names resolve to one chart. Valid semver, and the prerelease form
-      # sorts below the plain CalVer, which is what keeps it from hijacking a
+      # sorts below the plain version, which is what keeps it from hijacking a
       # version range someone pinned deliberately.
       - name: Tag the chart with its commit
-        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        if: ${{ needs.version.outputs.published == 'true' }}
         env:
           REF: ${{ needs.version.outputs.ns }}/charts/obico
           DIGEST: ${{ steps.push.outputs.digest }}
           # The g prefix is not decoration. A short SHA can come out all
           # digits, and semver forbids a leading zero in a numeric prerelease
-          # identifier — 2026.7.1-09613699 is not a version, so Helm stops
+          # identifier — 0.2.1-09613699 is not a version, so Helm stops
           # treating it as one, falls back to reading it as a constraint, and
           # fails to parse that. Five commits in this repo's recent history
           # have such a SHA. Prefixing a letter, the git describe convention,
@@ -1095,10 +1130,35 @@ jobs:
       # a version string the registry accepted, so only Helm's own parser can
       # prove the tag is usable.
       - name: Verify the immutable version resolves
-        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        if: ${{ needs.version.outputs.published == 'true' }}
         env:
           REF: ${{ needs.version.outputs.ns }}/charts/obico
           IMMUTABLE: ${{ needs.version.outputs.version }}-g${{ needs.version.outputs.short_sha }}
         run: helm show chart "oci://${REF}" --version "${IMMUTABLE}" > /dev/null
 
 
+
+  # semantic-release creates the release as a draft, before anything is
+  # built. Published here once the images and the chart it names are out. A
+  # failed build leaves the tag and its draft, and the next release moves on.
+  github-release:
+    if: ${{ needs.version.outputs.published == 'true' }}
+    needs: [version, publish-chart]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 5
+    steps:
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: v${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          # A re-run of a released commit finds it published already.
+          if [ "$(gh release view "${TAG}" --json isDraft --jq .isDraft)" = true ]; then
+            gh release edit "${TAG}" --draft=false --latest
+          else
+            echo "::notice::${TAG} is already published"
+          fi

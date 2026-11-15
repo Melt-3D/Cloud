@@ -27,7 +27,7 @@ Obico's docker-compose builds the server images from source. This chart consumes
 * `obico-ml-api-cpu` — slim CPU inference image (chart default)
 * `obico-ml-api-gpu` — CUDA inference image for GPU nodes
 
-By default the chart pulls the `release` moving tag — the latest images built from the release branch at deploy time. Because that tag moves and `pullPolicy` defaults to `IfNotPresent`, already-running pods keep their pulled image until they restart. For a reproducible deployment, pin `image.*.tag`: `sha-<short>` is immutable per commit, while a CalVer like `2026.7.1` is day-granular (it moves if two commits land the same UTC day). Alternatively set the image `pullPolicy` to `Always` to re-pull on every pod start.
+By default the chart pulls the `release` moving tag — the latest images built from the release branch at deploy time. Because that tag moves and `pullPolicy` defaults to `IfNotPresent`, already-running pods keep their pulled image until they restart. For a reproducible deployment, pin `image.*.tag`: `sha-<short>` is immutable per commit, and a release version like `0.2.1` names one release. Alternatively set the image `pullPolicy` to `Always` to re-pull on every pod start.
 
 {{ template "chart.maintainersSection" . }}
 
@@ -37,7 +37,7 @@ By default the chart pulls the `release` moving tag — the latest images built 
 
 ## Installing the Chart
 
-The image-build workflow also packages this chart and pushes it to GHCR as an OCI artifact. That published chart pins the Obico images (web and both ml-api variants) to the immutable `sha-<short>` tag of the commit they were built from, so an install from the artifact is reproducible and needs no checkout. Pick a version (CalVer, e.g. `2026.1.20`) from the [package page](https://github.com/TheSpaghettiDetective/obico-server/pkgs/container/charts%2Fobico):
+The image-build workflow also packages this chart and pushes it to GHCR as an OCI artifact. That published chart pins the Obico images (web and both ml-api variants) to the immutable `sha-<short>` tag of the commit they were built from, so an install from the artifact is reproducible and needs no checkout. Pick a version (the release's, e.g. `0.2.1`) from the [package page](https://github.com/TheSpaghettiDetective/obico-server/pkgs/container/charts%2Fobico):
 
 ```bash
 # From the published OCI artifact (images pinned to the build commit)
