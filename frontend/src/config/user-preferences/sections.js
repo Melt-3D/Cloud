@@ -31,13 +31,13 @@ const defaultSections = {
     route: routes.ProfilePreferences,
     isHidden: onlyNotifications,
   },
-  AuthorizedApps: {
-    title: `${i18n.t('Authorized Apps')}`,
-    faIcon: 'fas fa-check-circle',
-    importComponent: () => import('@src/components/user-preferences/AuthorizedApps'),
-    route: routes.AuthorizedApps,
-    isHidden: onlyNotifications,
-  },
+  // AuthorizedApps: {
+  //   title: `${i18n.t('Authorized Apps')}`,
+  //   faIcon: 'fas fa-check-circle',
+  //   importComponent: () => import('@src/components/user-preferences/AuthorizedApps'),
+  //   route: routes.AuthorizedApps,
+  //   isHidden: onlyNotifications,
+  // },
 
   // Notifications
   GeneralNotifications: {
