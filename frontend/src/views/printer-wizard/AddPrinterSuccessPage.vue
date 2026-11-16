@@ -54,7 +54,7 @@
                         >{{ $t("Go Check Out Printer Feed!") }}</a
                       >
                     </div>
-                    <div class="mt-5">
+                    <!-- <div class="mt-5">
                       <a
                         href="/user_preferences/notification_twilio/"
                         class="btn btn-outline-secondary btn-block mx-auto"
@@ -65,7 +65,7 @@
                       <div class="text-muted mx-auto text-center font-weight-light">
                         {{$t("Receive text (SMS) in case of print failures.")}}
                       </div>
-                    </div>
+                    </div> -->
                     <div class="mt-4">
                       <a :href="editPrinterUrl" class="btn btn-outline-secondary btn-block mx-auto"
                         >{{ $t("Change Printer Settings") }}</a
@@ -94,6 +94,11 @@ import PageLayout from '@src/components/PageLayout.vue'
 import SavingAnimation from '@src/components/SavingAnimation.vue'
 import urls from '@config/server-urls'
 
+// Must match Printer.DEFAULT_NAME in backend/app/models/other_models.py
+const DEFAULT_PRINTER_NAME = 'My Awesome Cloud Printer'
+const NAME_POLL_INTERVAL_MS = 2000
+const NAME_POLL_MAX_ATTEMPTS = 15
+
 export default {
   components: {
     PageLayout,
@@ -102,6 +107,8 @@ export default {
   data() {
     return {
       verifiedPrinter: null,
+      nameEditedByUser: false,
+      namePollTimeoutId: null,
       saving: {},
       errorMessages: {},
       delayedSubmit: {
@@ -126,10 +133,36 @@ export default {
   created() {
     this.fetchPrinter()
   },
+  beforeDestroy() {
+    clearTimeout(this.namePollTimeoutId)
+  },
   methods: {
     async fetchPrinter() {
       const response = await axios.get(urls.printer(this.$route.params.printerId))
       this.verifiedPrinter = response.data
+      this.pollForHostnameName(NAME_POLL_MAX_ATTEMPTS)
+    },
+    // The backend renames the printer to its hostname once the agent sends its first status,
+    // which may happen after this page has loaded. Pick up the new name unless the user is editing it.
+    pollForHostnameName(attemptsLeft) {
+      if (
+        attemptsLeft <= 0 ||
+        this.nameEditedByUser ||
+        this.verifiedPrinter.name !== DEFAULT_PRINTER_NAME
+      ) {
+        return
+      }
+      this.namePollTimeoutId = setTimeout(async () => {
+        try {
+          const response = await axios.get(urls.printer(this.verifiedPrinter.id))
+          if (!this.nameEditedByUser) {
+            this.verifiedPrinter.name = response.data.name
+          }
+        } catch (e) {
+          // Ignore, try again on the next attempt
+        }
+        this.pollForHostnameName(attemptsLeft - 1)
+      }, NAME_POLL_INTERVAL_MS)
     },
     setSavingStatus(propName, status) {
       if (status) {
@@ -138,6 +171,8 @@ export default {
       this.$set(this.saving, propName, status)
     },
     updatePrinterName() {
+      this.nameEditedByUser = true
+      clearTimeout(this.namePollTimeoutId)
       if ('name' in this.verifiedPrinter && this.verifiedPrinter.name) {
         const delayInfo = this.delayedSubmit['printer_name']
         if (delayInfo['timeoutId']) {

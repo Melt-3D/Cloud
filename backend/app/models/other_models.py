@@ -38,6 +38,10 @@ class Printer(SafeDeleteModel):
     class Meta:
         default_manager_name = 'objects'
 
+    # Placeholder name given to a freshly linked printer. It is replaced by the
+    # printer's hostname once the agent reports it (see lib/printer_naming.py).
+    DEFAULT_NAME = 'My Awesome Cloud Printer'
+
     PAUSE = 'PAUSE'
     NONE = 'NONE'
     ACTION_ON_FAILURE = (

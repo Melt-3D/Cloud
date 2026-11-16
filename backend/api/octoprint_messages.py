@@ -9,6 +9,7 @@ from lib.utils import set_as_str_if_present
 from lib import mobile_notifications
 from app.models import PrinterEvent, Printer
 from lib.heater_trackers import process_heater_temps
+from lib.printer_naming import name_printer_after_hostname_if_needed
 
 LOGGER = logging.getLogger(__name__)
 STATUS_TTL_SECONDS = 120
@@ -25,6 +26,8 @@ def process_printer_status(printer: Printer, msg: Dict) -> None:
             printer.agent_name = agent_name
             printer.agent_version = agent_version
             printer.save()
+
+        name_printer_after_hostname_if_needed(printer, printer_settings)
 
 
     # Backward compatibility: octoprint_data is for OctoPrint-Obico 2.1.2 or earlier, or moonraker-obico 0.5.1 or earlier

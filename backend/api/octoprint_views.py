@@ -331,7 +331,7 @@ class OneTimeVerificationCodeVerifyView(APIView):
         if code:
             if not code.printer:
                 printer = Printer.objects.create(
-                    name="My Awesome Cloud Printer",
+                    name=Printer.DEFAULT_NAME,
                     user=code.user,
                     auth_token=hexlify(os.urandom(10)).decode())
                 code.printer = printer
