@@ -1,6 +1,6 @@
 # obico
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2026.1.20](https://img.shields.io/badge/AppVersion-2026.1.20-informational?style=flat-square)
+![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.1](https://img.shields.io/badge/AppVersion-0.2.1-informational?style=flat-square)
 
 Self-hosted Obico server for AI-powered 3D printer monitoring (OctoPrint/Klipper)
 
@@ -25,7 +25,7 @@ Obico's docker-compose builds the server images from source. This chart consumes
 * `obico-ml-api-cpu` — slim CPU inference image (chart default)
 * `obico-ml-api-gpu` — CUDA inference image for GPU nodes
 
-By default the chart pulls the `release` moving tag — the latest images built from the release branch at deploy time. Because that tag moves and `pullPolicy` defaults to `IfNotPresent`, already-running pods keep their pulled image until they restart. For a reproducible deployment, pin `image.*.tag`: `sha-<short>` is immutable per commit, while a CalVer like `2026.7.1` is day-granular (it moves if two commits land the same UTC day). Alternatively set the image `pullPolicy` to `Always` to re-pull on every pod start.
+By default the chart pulls the `release` moving tag — the latest images built from the release branch at deploy time. Because that tag moves and `pullPolicy` defaults to `IfNotPresent`, already-running pods keep their pulled image until they restart. For a reproducible deployment, pin `image.*.tag`: `sha-<short>` is immutable per commit, and a release version like `0.2.1` names one release. Alternatively set the image `pullPolicy` to `Always` to re-pull on every pod start.
 
 ## Maintainers
 
@@ -43,7 +43,7 @@ Kubernetes: `>=1.21.0-0`
 
 ## Installing the Chart
 
-The image-build workflow also packages this chart and pushes it to GHCR as an OCI artifact. That published chart pins the Obico images (web and both ml-api variants) to the immutable `sha-<short>` tag of the commit they were built from, so an install from the artifact is reproducible and needs no checkout. Pick a version (CalVer, e.g. `2026.1.20`) from the [package page](https://github.com/TheSpaghettiDetective/obico-server/pkgs/container/charts%2Fobico):
+The image-build workflow also packages this chart and pushes it to GHCR as an OCI artifact. That published chart pins the Obico images (web and both ml-api variants) to the immutable `sha-<short>` tag of the commit they were built from, so an install from the artifact is reproducible and needs no checkout. Pick a version (the release's, e.g. `0.2.1`) from the [package page](https://github.com/TheSpaghettiDetective/obico-server/pkgs/container/charts%2Fobico):
 
 ```bash
 # From the published OCI artifact (images pinned to the build commit)
@@ -225,7 +225,7 @@ To skip AI failure detection entirely, set `mlApi.enabled: false`. Obico still c
 | httpRoute.hostnames | list | `["obico.example.com"]` | Hostnames for the route |
 | httpRoute.parentRefs | list | `[{"name":"gateway","namespace":"gateway-system"}]` | Parent Gateway references |
 | httpRoute.rules | list | `[{"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]` | Routing rules |
-| image | object | `{"mlApi":{"cpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-cpu","tag":""},"gpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-gpu","tag":""},"pullPolicy":"IfNotPresent"},"web":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/thespaghettidetective/obico-web","tag":""}}` | Container images. Built from obico-server source by the in-repo workflow (.github/workflows/build-images.yaml) and published to GHCR under the repository owner's namespace (ghcr.io/thespaghettidetective/* upstream). Each tag defaults to the "release" moving tag the workflow publishes on the release branch; pin a specific tag (a CalVer like 2026.7.1 or sha-<short>) for reproducibility. |
+| image | object | `{"mlApi":{"cpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-cpu","tag":""},"gpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-gpu","tag":""},"pullPolicy":"IfNotPresent"},"web":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/thespaghettidetective/obico-web","tag":""}}` | Container images. Built from obico-server source by the in-repo workflow (.github/workflows/build-images.yaml) and published to GHCR under the repository owner's namespace (ghcr.io/thespaghettidetective/* upstream). Each tag defaults to the "release" moving tag the workflow publishes on the release branch; pin a specific tag (a release version like 0.2.1 or sha-<short>) for reproducibility. |
 | image.mlApi | object | `{"cpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-cpu","tag":""},"gpu":{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-gpu","tag":""},"pullPolicy":"IfNotPresent"}` | ML inference API images. Two variants are published from the same source: a slim CPU-only image (default) and a CUDA image for GPU inference. mlApi.gpu selects which one runs; configure each variant independently. |
 | image.mlApi.cpu | object | `{"repository":"ghcr.io/thespaghettidetective/obico-ml-api-cpu","tag":""}` | CPU-only inference image (slim). Used when mlApi.gpu is false. |
 | image.mlApi.cpu.tag | string | `""` | Overrides the CPU image tag whose default is the "release" moving tag |

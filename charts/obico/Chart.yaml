@@ -17,9 +17,12 @@ apiVersion: v2
 name: obico
 description: Self-hosted Obico server for AI-powered 3D printer monitoring (OctoPrint/Klipper)
 type: application
-version: "0.2.0"
-# CalVer derived from the obico-server release commit these images are built from.
-appVersion: "2026.1.20"
+# The published chart takes its version and appVersion from the release tag
+# (v<version>, which build-images.yaml pushes on every release); these two are
+# only what an install from a git checkout reports.
+version: "0.2.1"
+# The release version, as for version above.
+appVersion: "0.2.1"
 icon: https://www.obico.io/img/logo.svg
 home: https://www.obico.io/
 keywords:

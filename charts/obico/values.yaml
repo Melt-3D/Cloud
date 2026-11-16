@@ -7,7 +7,7 @@
 # (.github/workflows/build-images.yaml) and published to GHCR under the
 # repository owner's namespace (ghcr.io/thespaghettidetective/* upstream). Each
 # tag defaults to the "release" moving tag the workflow publishes on the release
-# branch; pin a specific tag (a CalVer like 2026.7.1 or sha-<short>) for
+# branch; pin a specific tag (a release version like 0.2.1 or sha-<short>) for
 # reproducibility.
 image:
   # -- Web application image (Django + Celery)
